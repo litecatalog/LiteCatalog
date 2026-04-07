@@ -6,8 +6,8 @@
 
 ## 🖼️ Скриншоты
 [![](https://github.com/user-attachments/assets/87a78186-a5ac-44ad-8610-60497d2c72cd)](https://github.com/user-attachments/assets/ec80c8db-2f47-4363-b7b8-f8569c15df62)
-[![](https://github.com/user-attachments/assets/2d634415-4a75-425a-a757-b411db4170e1)](https://github.com/user-attachments/assets/55f61956-d49f-428d-a70b-9b28a339b32e)
-[![](https://github.com/user-attachments/assets/ba326a21-8b72-4037-937b-da72b2f1c4d0)](https://github.com/user-attachments/assets/beee8faf-d69b-40e2-bbee-832d61a7a8a0)
+[![](https://github.com/user-attachments/assets/39e30d67-b77a-4736-9880-670bc8f66ff6)](https://github.com/user-attachments/assets/55f61956-d49f-428d-a70b-9b28a339b32e)
+[![](https://github.com/user-attachments/assets/fa1a219f-fca6-4b62-9180-3de5bd3a889f)](https://github.com/user-attachments/assets/beee8faf-d69b-40e2-bbee-832d61a7a8a0)
 [![](https://github.com/user-attachments/assets/7e0e8aa6-e28c-444f-96d5-bda3565c8b6f)](https://github.com/user-attachments/assets/f147e737-dfdf-4b11-8690-89e4a4218a4d)
 [![](https://github.com/user-attachments/assets/cdf4d45d-7612-4777-a3a5-7036bf3242aa)](https://github.com/user-attachments/assets/34c13c2f-e1bd-4360-bfca-891c3abb8efd)
 
@@ -74,7 +74,8 @@
 
 Для перевода на другие языки создайте раздел с необходимыми параметрами:
 
-```[App.Locale.<название_локали>]
+```ini
+[App.Locale.<название_локали>]
 Description = ```
 
 

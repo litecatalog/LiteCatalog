@@ -57,7 +57,6 @@ Each application is described with an INI file in the `Apps\<Category>\` folder.
 Key fields:
 
 | Field | Description |
-
 |------|------------|
 | `DownloadURL.x86` / `DownloadURL.x64` | Direct download links |
 | `SHA1.x86` / `SHA1.x64` | File checksums |
@@ -73,7 +72,7 @@ To automatically calculate file hashes and sizes, use the debug tool. Enable deb
 
 To translate to other languages, create a section with the necessary parameters:
 
-```
+```ini
 [App.Locale.<locale_name>]
 Description = ```
 
