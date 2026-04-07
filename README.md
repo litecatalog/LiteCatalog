@@ -1,5 +1,6 @@
 [![EN](https://user-images.githubusercontent.com/9499881/33184537-7be87e86-d096-11e7-89bb-f3286f752bc6.png)](https://github.com/litecatalog/LiteCatalog/) 
 [![RU](https://user-images.githubusercontent.com/9499881/27683795-5b0fbac6-5cd8-11e7-929c-057833e01fb1.png)](https://github.com/litecatalog/LiteCatalog/blob/master/README.RU.md)
+ ← Choose language | Выберите язык
 
 # LiteCatalog
 Catalog of open-source, free, and socially useful applications for Windows, with download and installation support.
@@ -70,11 +71,7 @@ Key fields:
 
 To automatically calculate file hashes and sizes, use the debug tool. Enable debug mode by setting `Debug` to `1` in the `Config.ini` file. Then, in the menu, choose `Calculate hashes and URL sizes from config`. You can also view the shortened locale name there.
 
-To translate to other languages, create a section with the necessary parameters:
-
-```ini
-[App.Locale.<locale_name>]
-Description = ```
+To translate to other languages, create a section with the necessary parameters: `[App.Locale.<locale_name>]`.
 
 
 Older versions of programs for specific Windows versions can be specified in the corresponding sections: `[App.Windows10]`, `[App.Windows8.1]`, `[App.Windows8]`, `[App.Windows7]`, `[App.WindowsVista]`, and `[App.WindowsXP]`.
