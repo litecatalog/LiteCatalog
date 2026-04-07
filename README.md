@@ -13,10 +13,10 @@ Catalog of open-source, free, and useful applications for Windows, with download
 [![](https://github.com/user-attachments/assets/321ff138-2c96-42ea-b811-dfc898795a65)](https://github.com/user-attachments/assets/1e6c4b74-df0b-4c51-af44-9e0817bad54b)
 
 ## ✨ Features
-✔️ **Checksum verification** — most downloaded files are verified using SHA-1 hashes, ensuring the authenticity and integrity of the downloaded files.<br>
-✔️ **Older versions** — archived versions are available for some programs, compatible with legacy Windows versions.<br>
-✔️ **Automatic installation of portable applications** — archives (`zip`, `7z`, `rar`) are automatically extracted to the programs folder (`C:\Programs\` by default), with desktop shortcuts created automatically.<br>
-✔️ **Silent installation mode** — installation can be performed in the background without dialog windows.<br>
+✔️ **Checksum verification** - most downloaded files are verified using SHA-1 hashes, ensuring the authenticity and integrity of the downloaded files.<br>
+✔️ **Older versions** - archived versions are available for some programs, compatible with legacy Windows versions.<br>
+✔️ **Automatic installation of portable applications** - archives (`zip`, `7z`, `rar`) are automatically extracted to the programs folder (`C:\Programs\` by default), with desktop shortcuts created automatically.<br>
+✔️ **Silent installation mode** - installation can be performed in the background without dialog windows.<br>
 
 ## ❤️ Support the Project
 
