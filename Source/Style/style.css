@@ -1,0 +1,126 @@
+* {margin: 0; padding: 0;}
+
+html, body {border: none;}
+
+body {
+    font-family: Tahoma, Arial, sans-serif;
+    font-size: 13px;
+    background: #fff;
+    color: #000;
+	cursor: default;
+	background: #f9f9f9 url('bg.jpg') repeat-x;
+}
+
+.clear { clear: both; }
+
+/* Fixed breadcrumb at top */
+.breadcrumb {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    font-size: 13px;
+    color: #333;
+	background-color:#f0f0f0;
+    border-bottom: 1px solid #a0a0a0;
+    padding: 5px 10px;
+    z-index: 100;
+	text-align:center;
+}
+.breadcrumb-padding { height: 24px; } 
+
+.nav-link{ cursor:pointer;}
+
+.content {
+    padding: 12px;
+}
+
+/* App item - float left, 50% width */
+.app-item {
+    float: left;
+    width: 50%;
+}
+
+.app-item-inner {
+    border-bottom: 1px solid #e0e0e0;
+    padding: 8px 8px 8px 0;
+}
+
+.app-item .icon { float: left; width: 48px; height: 48px; margin-right: 10px; }
+.app-item .icon img { width: 48px; height: 48px; }
+.app-item .info { margin-left: 58px; }
+.app-item .info strong { font-size: 13px; }
+.app-item .info .desc { color: #555; }
+.app-item .info .meta { color: #888; }
+
+.app-item .info strong, .app-item .info .desc, .app-item .info .meta
+{
+	display: block;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 250px;
+}
+
+/* Buttons */
+#buttons{margin-top:6px;}
+.btn {
+    display: inline-block;
+    margin-top: 4px;
+    margin-right: 4px;
+    padding: 2px 8px 2px 4px;
+    border: 1px solid #999;
+    background: #e8e8e8;
+    cursor: pointer;
+    font-size: 13px;
+    font-family: Tahoma, Arial, sans-serif;
+    color: #000;
+	
+	*display: inline;      /* IE8 */
+    zoom:1;
+    line-height:16px;
+    height: 22px;
+}
+
+.btn img {
+    vertical-align: middle;
+    width: 12px;
+    height: 12px;
+    margin-right: 3px;
+	margin-top:-1px;
+}
+
+.btn-download { border-color: #88bb88; background: #d8efd8; }
+.btn-delete   { border-color: #999; background: #e8e8e8; }
+.btn-remove   { border-color: #999; background: #e8e8e8; }
+
+/* Categories - same float left 50% */
+.cat-item {
+    float: left;
+    width: 50%;
+    padding: 8px 0;
+    cursor: pointer;
+}
+
+.cat-item .icon { float: left; width: 40px; height: 40px; margin-right: 8px; }
+.cat-item .icon img { width: 40px; height: 40px; }
+.cat-item .label { margin-left: 48px; padding-top: 10px; font-size: 13px; }
+
+/* Single-item pages (installed, app_detail) - no float */
+.app-item-single { }
+.app-item-single .icon { float: left; width: 48px; height: 48px; margin-right: 10px; }
+.app-item-single .icon img { width: 48px; height: 48px; }
+.app-item-single .info { margin-left: 58px; }
+.app-item-single .info strong { font-size: 13px; }
+.app-item-single .info .desc { color: #555; }
+.app-item-single .info .meta { color: #888; }
+
+/* breadcrumb inside content (search page) */
+.sub-breadcrumb {
+    clear: both;
+    font-size: 13px;
+    color: #333;
+    margin: 10px 0 4px 0;
+}
+
+.sub-header{ cursor: pointer; }

@@ -1,0 +1,199 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Application details</title>
+<link rel="stylesheet" type="text/css" href="style.css" />
+<style type="text/css">
+
+/* desc ellipsis — IE8 compatible */
+.app-item-single .info .desc {
+		display: block;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		max-width: 420px;
+		color: #555;
+}
+
+/* Old versions header bar */
+.sub-header {
+		clear: both;
+		background: #f0f0f0;
+		border-top: 1px solid #bbb;
+		border-bottom: 1px solid #a0a0a0;
+		padding: 5px 8px;
+		font-weight: bold;
+		color: #333;
+}
+
+#old-versions{padding-bottom:10px;}
+.old-version-block{padding: 0 12px;}
+#old-toggle-icon{font-size:10px;}
+
+#app-screenshots img {height:130px; border:1px solid #ccc; margin-right:8px; cursor:pointer; }
+#screenshots{margin:10px;}
+
+.details{background-color:#fdfdfd; border:1px solid #e7e7e7; margin-top:10px; border-radius:10px; opacity:0.9; word-break:break-all; word-wrap:break-word;}
+.detail-header{border-top-left-radius:10px; border-top-right-radius:10px; border-bottom:1px solid #e7e7e7; padding:6px; font-weight:bold; background-color:#e7e7e7;}
+.detail{float:left; width:30%; height:34px; padding:6px;}
+.detail-title{font-weight:bold; color:#1d1d1d;}
+.detail-descr{white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.detail-content{padding:6px;}
+</style>
+</head>
+<script type="text/javascript">
+var IDS_OLD_VERSIONS_ON = '';
+var IDS_OLD_VERSIONS_OFF = '';
+
+function init() {
+	var Toggle = document.getElementById('old-toggle');
+	var ToggleTitle = document.getElementById('old-toggle-icon');
+	var Block = document.getElementById('old-versions');
+
+	if (!Toggle || !Block) return;
+
+	Toggle.onclick = function() {
+
+		if (Block.style.display == 'none' || Block.style.display == '') {
+			Block.style.display = 'block';
+			//if (IDS_OLD_VERSIONS_ON == '') IDS_OLD_VERSIONS_ON = '&#9660; ' + document.getElementById('old-versions-title').value;
+			//Toggle.innerHTML = IDS_OLD_VERSIONS_ON;
+			ToggleTitle.innerHTML = '&#9660;';
+		} else {
+			Block.style.display = 'none';
+			//if (IDS_OLD_VERSIONS_OFF == '') IDS_OLD_VERSIONS_OFF = '&#9654; ' + document.getElementById('old-versions-title').value;
+			//Toggle.innerHTML = IDS_OLD_VERSIONS_OFF;
+			ToggleTitle.innerHTML = '&#9654;';
+		}
+
+	};
+}
+
+if (window.attachEvent)
+	window.attachEvent('onload', init); // IE8
+else
+	window.addEventListener('load', init, false);
+</script>
+<body>
+
+<div class="breadcrumb" id="nav-bar"></div>
+<div class="breadcrumb-padding"></div>
+
+<div class="content">
+	<div class="app-item-single">
+	<div id="app-header" style="border:none;">
+		<table><tbody><tr><td valign="middle"><img id="icon" src="icons/remove.png" alt="Firefox" /></td><td width="8"></td><td valign="middle"><h3>App</h3>Описание</td></tr></tbody></table>
+	</div>
+
+	<div id="buttons">
+		<button class="btn btn-download"><img src="icons/download.png" alt="" />Download</button>
+		<button class="btn btn-donate"><img src="icons/donate.png" alt="" />Donate</button>
+	</div>
+		
+	<div class="details" id="app-screenshots">
+		<div class="detail-header" id="screenshots-title">Скриншоты</div>
+		<div id="screenshots">
+			<img onclick="document.location = 'screenshot://' + this.src" src="icons/screenshot1.png" alt="Screenshot 1" />
+		</div>
+	</div>
+	
+	<div class="details" id="app-details">
+		<div class="detail-header">Сведения</div>
+		<div class="detail">
+			<div class="detail-title">Версия</div>
+			<div class="detail-descr">148</div>
+		</div>
+		<div class="detail">
+			<div class="detail-title">Размер</div>
+			<div class="detail-descr">73,1 МБ</div>
+		</div>
+		<div class="detail">
+			<div class="detail-title">Лицензия</div>
+			<div class="detail-descr">MPL 2.0</div>
+		</div>
+		<div class="detail">
+			<div class="detail-title">Категория</div>
+			<div class="detail-descr">Интернет и сети</div>
+		</div>
+		<div class="detail">
+			<div class="detail-title">Веб-сайт</div>
+			<div class="detail-descr">https://firefox.com</div>
+		</div>
+		<div class="detail">
+			<div class="detail-title">Загрузка</div>
+			<div class="detail-descr">https://ftp.mozilla.org/pub/firefox/releases/</div>
+		</div>
+		<div class="clear"></div>
+	</div>
+	
+	<div class="details" id="app-components">
+		<div class="detail-header">Необходимые компоненты</div>
+		<div class="detail-content">
+			
+		</div>
+	</div>
+	
+	<div class="details" id="app-notes">
+		<div class="detail-header">Необходимые компоненты</div>
+		<div class="detail-content">
+			
+		</div>
+	</div>
+	
+</div>
+</div>
+
+<!-- Old versions -->
+<div id="old-versions-block">
+<div class="sub-header" id="old-toggle"><span id="old-toggle-icon">&#9654;</span> <span id="old-versions-title">Older versions</span></div>
+
+<div id="old-versions" style="display:none;">
+	
+	<div class="old-version-block">
+		<div class="details" id="app-details">
+			<div class="detail">
+				<div class="detail-title">ОС</div>
+				<div class="detail-descr">Windows 7/8.1</div>
+			</div>
+			<div class="detail">
+				<div class="detail-title">Версия</div>
+				<div class="detail-descr">148</div>
+			</div>
+			<div class="detail">
+				<div class="detail-title">Размер</div>
+				<div class="detail-descr">73,1 МБ</div>
+			</div>
+			<div class="clear"></div>
+		</div>
+
+		<button class="btn btn-download"><img src="icons/download.png" alt="" />Download</button>
+	</div>
+
+	<div class="old-version-block">
+		<div class="details" id="app-details">
+			<div class="detail">
+				<div class="detail-title">ОС</div>
+				<div class="detail-descr">Windows XP</div>
+			</div>
+			<div class="detail">
+				<div class="detail-title">Версия</div>
+				<div class="detail-descr">148</div>
+			</div>
+			<div class="detail">
+				<div class="detail-title">Размер</div>
+				<div class="detail-descr">73,1 МБ</div>
+			</div>
+			<div class="clear"></div>
+		</div>
+
+		<button class="btn btn-download"><img src="icons/download.png" alt="" />Download</button>
+	</div>
+
+</div>
+</div>
+
+	
+
+</body>
+</html>
