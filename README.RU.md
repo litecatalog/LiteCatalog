@@ -1,8 +1,8 @@
 [![EN](https://user-images.githubusercontent.com/9499881/33184537-7be87e86-d096-11e7-89bb-f3286f752bc6.png)](https://github.com/litecatalog/LiteCatalog/) 
 [![RU](https://user-images.githubusercontent.com/9499881/27683795-5b0fbac6-5cd8-11e7-929c-057833e01fb1.png)](https://github.com/litecatalog/LiteCatalog/blob/master/README.RU.md)
 
-# LiteCatalog
-Каталог открытых, бесплатных и общественно полезных приложений для Windows с возможностью загрузки и установки.
+# Lite Catalog
+Каталог открытых, бесплатных и полезных приложений для Windows с возможностью загрузки и установки.
 
 ## 🖼️ Скриншоты
 [![](https://github.com/user-attachments/assets/87a78186-a5ac-44ad-8610-60497d2c72cd)](https://github.com/user-attachments/assets/ec80c8db-2f47-4363-b7b8-f8569c15df62)

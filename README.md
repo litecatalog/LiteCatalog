@@ -2,8 +2,8 @@
 [![RU](https://user-images.githubusercontent.com/9499881/27683795-5b0fbac6-5cd8-11e7-929c-057833e01fb1.png)](https://github.com/litecatalog/LiteCatalog/blob/master/README.RU.md)
  ← Choose language | Выберите язык
 
-# LiteCatalog
-Catalog of open-source, free, and socially useful applications for Windows, with download and installation support.
+# Lite Catalog
+Catalog of open-source, free, and useful applications for Windows, with download and installation support.
 
 ## 🖼️ Screenshots
 [![](https://github.com/user-attachments/assets/01fb6dff-4ca4-41d8-9068-ec7d48015bb0)](https://github.com/user-attachments/assets/a1a3dd20-a728-4aec-9b53-4292c6ef1a21)
