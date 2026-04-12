@@ -141,7 +141,7 @@ var
   IsDebug, GetStatistics: boolean;
   AppFilePath, AppVersion, DBVersion: string;
   OldWidth, OldHeight: integer;
-  DBPath, DBDefaultPath, CurCatFolder, CurCatName, CurAppFile, CurAppName: string;
+  DBPath, CurCatFolder, CurCatName, CurAppFile, CurAppName: string;
   NavBarHTML: string;
   ViewImageLink: string;
   UserLocalCode: string;
@@ -212,8 +212,8 @@ begin
     Result:=Result + '-' + string(Country);
 end;
 
-function GetLocaleInformation(Flag: integer): string; // If there are multiple languages in the system (with sorting) / ≈сли в системе несколько €зыков (с сортировкой)
-var
+function GetLocaleInformation(Flag: integer): string; // If there are multiple languages in the system (with sorting) / ≈сли в системе несколько €зыков (с сортировкой)
+var
   pcLCA: array [0..63] of Char;
 begin
   if GetLocaleInfo((DWORD(SORT_DEFAULT) shl 16) or Word(GetUserDefaultUILanguage), Flag, pcLCA, Length(pcLCA)) <= 0 then
@@ -221,8 +221,8 @@ begin
   Result:=pcLCA;
 end;
 
-function GetIniStr(Ini: TCustomIniFile; Section, Parameter: string): WideString;
-begin
+function GetIniStr(Ini: TCustomIniFile; Section, Parameter: string): WideString;
+begin
   Result:=UTF8Decode(UTF8String(Ini.ReadString(Section + '.Locale.' + UserLocalCode, Parameter, '')));
   if Trim(Result) = '' then
     Result:=UTF8Decode(UTF8String(Ini.ReadString(Section + '.Locale.' + Copy(UserLocalCode, 1, 2), Parameter, '')));
@@ -230,8 +230,8 @@ end;
     Result:=UTF8Decode(UTF8String(Ini.ReadString(Section, Parameter, '')));
 end;
 
-procedure FindDBFiles(const CatFolder, CatName: string; List: TStringList);
-var
+procedure FindDBFiles(const CatFolder, CatName: string; List: TStringList);
+var
   SR: TSearchRec; Ini: TMemIniFile;
   DownloadX86, DownloadX64: WideString;
 begin
@@ -262,28 +262,28 @@ begin
   end;
 end;
 
-procedure TMain.UpdateSearchDB;
-begin
-  SearchList.Clear;
-  FindDBFiles('Internet and Networking', IDS_CAT_INTERNET_NETWORKING, SearchList);
-  FindDBFiles('Office and Productivity', IDS_CAT_OFFICE_PRODUCTIVITY, SearchList);
+procedure TMain.UpdateSearchDB;
+begin
+  SearchList.Clear;
+  FindDBFiles('Internet and Networking', IDS_CAT_INTERNET_NETWORKING, SearchList);
+  FindDBFiles('Office and Productivity', IDS_CAT_OFFICE_PRODUCTIVITY, SearchList);
   FindDBFiles('Multimedia', IDS_CAT_MULTIMEDIA, SearchList);
   FindDBFiles('Games and Utilities', IDS_CAT_GAMES_UTILITIES, SearchList);
   FindDBFiles('System Utilities', IDS_CAT_SYSTEM_UTILITIES, SearchList);
   FindDBFiles('Development and Engineering', IDS_CAT_DEVELOPMENT_ENGINEERING, SearchList);
   FindDBFiles('Other', IDS_CAT_OTHER, SearchList);
-end;
+end;
 
-function GetDesktopPath: string;
-var
+function GetDesktopPath: string;
+var
   Path: array[0..MAX_PATH] of Char;
 begin
   SHGetSpecialFolderPath(0, Path, CSIDL_DESKTOPDIRECTORY, False);
   Result := StrPas(Path);
 end;
 
-procedure TUpdateSearchThread.Execute;
-begin
+procedure TUpdateSearchThread.Execute;
+begin
   Main.UpdateSearchDB;
 end;
 
@@ -304,7 +304,6 @@ begin
   Application.Title:=Caption;
   AppFilePath:=ExtractFilePath(ParamStr(0));
 
-  WebView.Navigate(AppFilePath + HTMLStyleFolder + '/categories.html');
   DesktopPath:=GetDesktopPath + '\';
   SearchList:=TStringList.Create;
 
@@ -352,14 +351,13 @@ begin
 
   IsSilentInstall:=Ini.ReadBool('Main', 'SilentInstall', false);
 
+  DBPath:=AppFilePath + 'Apps\';
+
   IsDebug:=Ini.ReadBool('Main', 'Debug', false);
   if IsDebug = false then begin
-    DBPath:=AppFilePath + 'Apps\';
     DebugBtn.Visible:=false;
     DebugLine.Visible:=false;
-  end else // Debug mode
-    DBPath:=AppFilePath + 'AppsDefault\';
-  DBDefaultPath:=AppFilePath + 'Apps\';
+  end;
 
   Ini.Free;
 
@@ -460,6 +458,8 @@ begin
   IDS_SKIP_UPDATE:=UTF8ToAnsi(Ini.ReadString('Main', 'SKIP_UPDATE', 'Skip this update?'));
   IDS_NO_UPDATES_FOUND:=UTF8ToAnsi(Ini.ReadString('Main', 'NO_UPDATES_FOUND', 'No updates found.'));
   Ini.Free;
+
+  WebView.Navigate(AppFilePath + HTMLStyleFolder + '/categories.html');
 
   //UpdateSearchDB; // »сключительно дл€ поиска, после загрузки перевода категорий
   UpdateSearchThread:=TUpdateSearchThread.Create(true);
@@ -849,8 +849,8 @@ begin
 
       ShellRunAndWait(AppFilePath + 'Utilities\7z.exe', 'x "' + DownloadsPath + FDownloadedFileName +'" -o"' + AppFilePath + 'Temp\' + '" -y', true);
 
-      DeleteFolderContents(DBDefaultPath);
-      CopyFolderRecursive(AppFilePath + 'Temp\AppsDB-master', DBDefaultPath);
+      DeleteFolderContents(DBPath);
+      CopyFolderRecursive(AppFilePath + 'Temp\AppsDB-master', DBPath);
 
       DeleteFolderContents(AppFilePath + 'Temp');
 
@@ -1326,8 +1326,8 @@ begin
   end;
 end;
 
-function BuildScreenshotsHTML(const Screenshots: string): string;
-var
+function BuildScreenshotsHTML(const Screenshots: string): string;
+var
   List: TStringList; i: integer; ScreenshotURL: string;
 begin
   Result:='';
