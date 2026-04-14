@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, IniFiles, Buttons, ExtCtrls, ComCtrls, OleCtrls, SHDocVw,
   WinInet, ActiveX, ShellAPI, Menus, ClipBrd, SHA1, ComObj, StrUtils,
-  Registry, ShlObj;
+  Registry, ShlObj, SevenZipWrapper, MSHTML;
 
 type
   TDownloadParams = record
@@ -87,6 +87,7 @@ type
     N1: TMenuItem;
     StatisticsBtn: TMenuItem;
     N2: TMenuItem;
+    SuggestProgramUpdateBtn: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure DownloadsBtnClick(Sender: TObject);
     procedure WebViewBeforeNavigate2(Sender: TObject;
@@ -117,6 +118,7 @@ type
     procedure ReportProblemBtnClick(Sender: TObject);
     procedure StatisticsBtnClick(Sender: TObject);
     procedure CheckUpdatesBtnClick(Sender: TObject);
+    procedure SuggestProgramUpdateBtnClick(Sender: TObject);
   private
     procedure MessageHandler(var Msg: TMsg; var Handled: Boolean);
     procedure DownloadFile(Params: TDownloadParams; ActionType: TActionType);
@@ -164,7 +166,7 @@ var
   IDS_DESCRIPTION, IDS_SITE, IDS_SIZE, IDS_SIZE_KB, IDS_SIZE_MB, IDS_SIZE_GB, IDS_REQUIRED_COMPONENTS,
   IDS_NOTES, IDS_OS: string;
 
-  IDS_DOWNLOAD_TITLE, IDS_DB_UPDATE, IDS_EXTRACTING, IDS_OK, IDS_CANCEL, IDS_SCREENSHOT,
+  IDS_DOWNLOAD_TITLE, IDS_EXTRACT_TITLE, IDS_DB_UPDATE, IDS_OK, IDS_CANCEL, IDS_SCREENSHOT,
   IDS_DOWNLOAD_FOLDER, IDS_SELECT, IDS_SELECT_FOLDER, IDS_PROGRAMS_FOLDER, IDS_RUN_AFTER_DOWNLOAD,
   IDS_DELETE_INSTALLER, IDS_SILENT_INSTALL: string;
 
@@ -282,9 +284,40 @@ begin
   Result := StrPas(Path);
 end;
 
+{function GetCommonStartupFolder: string;
+var
+  Path: array[0..MAX_PATH] of Char;
+begin
+  SHGetFolderPath(0, CSIDL_COMMON_STARTUP, 0, 0, Path);
+  Result:=Path;
+end;}
+
 procedure TUpdateSearchThread.Execute;
 begin
   Main.UpdateSearchDB;
+end;
+
+procedure ZipProgress(Done, Total: Int64);
+var
+  NewPercent: Integer;
+begin
+  if (not Assigned(DownloadForm)) or (not DownloadForm.Visible) then Exit;
+
+  if Total > 0 then
+    NewPercent:=integer((Done * 100) div Total)
+  else
+    NewPercent:=0;
+
+  if NewPercent <> DownloadForm.ProgressBar.Position then begin
+    DownloadForm.ProgressBar.Position:=NewPercent;
+    if NewPercent = 100 then begin
+      DownloadForm.ProgressBar.Max:=101;
+      DownloadForm.ProgressBar.Position:=101;
+      DownloadForm.ProgressBar.Max:=100;
+    end;
+    DownloadForm.PercentDownloadLbl.Caption:=IntToStr(NewPercent) + '%';
+    Application.ProcessMessages;
+  end;
 end;
 
 procedure TMain.FormCreate(Sender: TObject);
@@ -307,9 +340,12 @@ begin
   DesktopPath:=GetDesktopPath + '\';
   SearchList:=TStringList.Create;
 
+  SevenZip.Load;
+  SevenZip.OnProgress:=ZipProgress;
+
   Ini:=TIniFile.Create(AppFilePath + 'Config.ini');
-  AppVersion:=Ini.ReadString('App', 'Version', '1.0.0');
-  DBVersion:=Ini.ReadString('App', 'DBVersion', '1');
+  AppVersion:=Ini.ReadString('App', 'Version', '1.1');
+  DBVersion:=Ini.ReadString('App', 'DBVersion', '2');
   Width:=Ini.ReadInteger('App', 'Width', Width);
   Height:=Ini.ReadInteger('App', 'Height', Height);
   OldWidth:=Width;
@@ -341,6 +377,7 @@ begin
 
   IsDownloadedRun:=Ini.ReadBool('Main', 'DownloadedRun', false);
   ProgramsPath:=Ini.ReadString('Main', 'ProgramsPath', 'C:\Programs\');
+  if Trim(ProgramsPath) = '' then ProgramsPath:='C:\Programs\';
   if not DirectoryExists(ProgramsPath) then CreateDir(ProgramsPath);
   DownloadsPath:=Ini.ReadString('Main', 'DownloadPath', '');
   if Trim(DownloadsPath) = '' then
@@ -381,6 +418,7 @@ begin
   SettingsBtn.Caption:=UTF8ToAnsi(Ini.ReadString('Main', 'SETTINGS', 'Settings'));
   ExitBtn.Caption:=UTF8ToAnsi(Ini.ReadString('Main', 'EXIT', 'Exit'));
   HelpBtn.Caption:=UTF8ToAnsi(Ini.ReadString('Main', 'HELP', 'Help'));
+  SuggestProgramUpdateBtn.Caption:=UTF8ToAnsi(Ini.ReadString('Main', 'SUGGEST_PROGRAM_UPDATE', 'Suggest a program / update'));
   ReportProblemBtn.Caption:=UTF8ToAnsi(Ini.ReadString('Main', 'REPORT_PROBLEM', 'Report a problem'));
   DebugBtn.Caption:=UTF8ToAnsi(Ini.ReadString('Main', 'DEBUG', 'Debug'));
   LocaleNameBtn.Caption:=UTF8ToAnsi(Ini.ReadString('Main', 'LOCALE_NAME', 'Language'));
@@ -397,7 +435,8 @@ begin
   CatalogBtn.Caption:=IDS_CATALOG;
   IDS_CATEGORY:=UTF8ToAnsi(Ini.ReadString('Main', 'CATEGORY', 'Category'));
   IDS_DOWNLOAD:=UTF8ToAnsi(Ini.ReadString('Main', 'DOWNLOAD', 'Download'));
-  IDS_DOWNLOAD_TITLE:=UTF8ToAnsi(Ini.ReadString('Main', 'DOWNLOAD_TITLE', 'Download'));
+  IDS_DOWNLOAD_TITLE:=UTF8ToAnsi(Ini.ReadString('Main', 'DOWNLOAD_TITLE', 'Downloading'));
+  IDS_EXTRACT_TITLE:=UTF8ToAnsi(Ini.ReadString('Main', 'EXTRACT_TITLE', 'Extracting'));
   IDS_MORE:=UTF8ToAnsi(Ini.ReadString('Main', 'MORE', 'More'));
   IDS_SCREENSHOTS:=UTF8ToAnsi(Ini.ReadString('Main', 'SCREENSHOTS', 'Screenshots'));
   IDS_ADDITIONAL_INFORMATION:=UTF8ToAnsi(Ini.ReadString('Main', 'ADDITIONAL_INFORMATION', 'Additional information'));
@@ -432,7 +471,6 @@ begin
 
   IDS_DOWNLOAD_TITLE:=UTF8ToAnsi(Ini.ReadString('Main', 'DOWNLOAD_TITLE', 'Download'));
   IDS_DB_UPDATE:=UTF8ToAnsi(Ini.ReadString('Main', 'DB_UPDATE', 'Updating database'));
-  IDS_EXTRACTING:=UTF8ToAnsi(Ini.ReadString('Main', 'EXTRACTING', 'Extracting'));
   IDS_OK:=UTF8ToAnsi(Ini.ReadString('Main', 'OK', 'Ok'));
   IDS_CANCEL:=UTF8ToAnsi(Ini.ReadString('Main', 'CANCEL', 'Cancel'));
   IDS_SCREENSHOT:=UTF8ToAnsi(Ini.ReadString('Main', 'SCREENSHOT', 'Screenshot'));
@@ -847,14 +885,17 @@ begin
       DownloadForm.ProgressBar.Position:=101;
       DownloadForm.ProgressBar.Max:=100;
 
-      ShellRunAndWait(AppFilePath + 'Utilities\7z.exe', 'x "' + DownloadsPath + FDownloadedFileName +'" -o"' + AppFilePath + 'Temp\' + '" -y', true);
+      DownloadForm.ProgressBar.Position:=0;
+      DownloadForm.Caption:=IDS_EXTRACT_TITLE;
+      if SevenZip.Extract(DownloadsPath + FDownloadedFileName, AppFilePath + 'Temp\') then begin
 
-      DeleteFolderContents(DBPath);
-      CopyFolderRecursive(AppFilePath + 'Temp\AppsDB-master', DBPath);
+        DeleteFolderContents(DBPath);
+        CopyFolderRecursive(AppFilePath + 'Temp\AppsDB-master', DBPath);
 
-      DeleteFolderContents(AppFilePath + 'Temp');
+        DeleteFolderContents(AppFilePath + 'Temp');
 
-      RemoveDir(AppFilePath + 'Temp');
+        RemoveDir(AppFilePath + 'Temp');
+      end;
 
       DeleteFile(DownloadsPath + FDownloadedFileName);
     end else
@@ -882,52 +923,59 @@ begin
             else begin // Make dir and shortcut
               if not DirectoryExists(ProgramsPath + CurAppName) then CreateDir(ProgramsPath + CurAppName);
 
-              ShellRunAndWait(AppFilePath + 'Utilities\7z.exe', 'x "' + DownloadsPath + FDownloadedFileName +'" -o"' + ProgramsPath + CurAppName + '\' + '" -y', true);
-
-              // —оздать €рлык дл€ exe
-              if FParams.ArchiveDesktopShortcuts = '*' then begin
-                if FindFirst(ProgramsPath + CurAppName + '\*.*', faAnyFile, SR) = 0 then begin
-                  repeat
-                    if (SR.Attr <> faDirectory) and (AnsiLowerCase(ExtractFileExt(SR.Name)) = '.exe') then begin
-                      CreateDesktopShortcut(ProgramsPath + CurAppName + '\' + SR.Name, CurAppName);
-                      break;
-                    end;
-                  until FindNext(SR) <> 0;
-                  FindClose(SR);
-                end;
-              end else if FParams.ArchiveDesktopShortcuts <> '' then
-                CreateShortcutsFromString(FParams.ArchiveDesktopShortcuts, ProgramsPath + CurAppName + '\');
+              DownloadForm.ProgressBar.Position:=0;
+              DownloadForm.Caption:=IDS_EXTRACT_TITLE;
+              if SevenZip.Extract(DownloadsPath + FDownloadedFileName, ProgramsPath + CurAppName + '\') then begin
+                // —оздать €рлык дл€ exe
+                if FParams.ArchiveDesktopShortcuts = '*' then begin
+                  if FindFirst(ProgramsPath + CurAppName + '\*.*', faAnyFile, SR) = 0 then begin
+                    repeat
+                      if (SR.Attr <> faDirectory) and (AnsiLowerCase(ExtractFileExt(SR.Name)) = '.exe') then begin
+                        CreateDesktopShortcut(ProgramsPath + CurAppName + '\' + SR.Name, CurAppName);
+                        break;
+                      end;
+                    until FindNext(SR) <> 0;
+                    FindClose(SR);
+                  end;
+                end else if FParams.ArchiveDesktopShortcuts <> '' then
+                  CreateShortcutsFromString(FParams.ArchiveDesktopShortcuts, ProgramsPath + CurAppName + '\');
+              end;
 
             end;
 
           // Intall in archive (unpack)
           end else begin
-            ShellRunAndWait(AppFilePath + 'Utilities\7z.exe', 'x "' + DownloadsPath + FDownloadedFileName +'" -o"' + DownloadsPath + CurAppName + '\' + '" -y', true);
 
-            // Search Installer app
-            if (FParams.ArchiveInstallerName = '*') or (FParams.ArchiveInstallerName = '') then
-	            if FindFirst(DownloadsPath + CurAppName + '\*.*', faAnyFile, SR) = 0 then begin
-                repeat
-                  if SR.Attr = faDirectory then Continue;
-                  ArchiveExt:=AnsiLowerCase(ExtractFileExt(SR.Name));
-                  if (ArchiveExt = '.exe') or (ArchiveExt = '.msi') then begin
-                    FParams.ArchiveInstallerName:=SR.Name;
-                    Break;
-                  end;
-		            until FindNext(SR) <> 0;
-	              FindClose(SR);
-                if FParams.ArchiveInstallerName = '*' then FParams.ArchiveInstallerName:='';
+            DownloadForm.ProgressBar.Position:=0;
+            DownloadForm.Caption:=IDS_EXTRACT_TITLE;
+            if SevenZip.Extract(DownloadsPath + FDownloadedFileName, DownloadsPath + CurAppName + '\') then begin
+
+              // Search Installer app
+              if (FParams.ArchiveInstallerName = '*') or (FParams.ArchiveInstallerName = '') then
+	              if FindFirst(DownloadsPath + CurAppName + '\*.*', faAnyFile, SR) = 0 then begin
+                  repeat
+                    if SR.Attr = faDirectory then Continue;
+                    ArchiveExt:=AnsiLowerCase(ExtractFileExt(SR.Name));
+                    if (ArchiveExt = '.exe') or (ArchiveExt = '.msi') then begin
+                      FParams.ArchiveInstallerName:=SR.Name;
+                      Break;
+                    end;
+		              until FindNext(SR) <> 0;
+	                FindClose(SR);
+                  if FParams.ArchiveInstallerName = '*' then FParams.ArchiveInstallerName:='';
+                end;
+
+              if FParams.ArchiveInstallerName <> '' then begin
+                ShellRunAndWait(DownloadsPath + CurAppName + '\' + FParams.ArchiveInstallerName, FParams.SilentParams, FParams.SilentParams <> '');
+                DeleteFolderContents(DownloadsPath + CurAppName + '\');
+                RemoveDir(DownloadsPath + CurAppName);
+              end else begin
+                ShellExecute(0, 'open', 'explorer', PChar('"' + DownloadsPath + CurAppName  + '"'), nil, SW_SHOW);
+                // Silent
+                FActionType:=atSilent;
               end;
 
-            if FParams.ArchiveInstallerName <> '' then begin
-              ShellRunAndWait(DownloadsPath + CurAppName + '\' + FParams.ArchiveInstallerName, FParams.SilentParams, FParams.SilentParams <> '');
-              DeleteFolderContents(DownloadsPath + CurAppName + '\');
-              RemoveDir(DownloadsPath + CurAppName);
-            end else begin
-              ShellExecute(0, 'open', 'explorer', PChar('"' + DownloadsPath + CurAppName  + '"'), nil, SW_SHOW);
-              // Silent
-              FActionType:=atSilent;
-            end;
+            end; // SevenZip extract
 
           end;
 
@@ -1711,8 +1759,9 @@ begin
               //SearchFileCatFolder, SearchFileCatName
 
           RecommendationsList.Free;
+
         // сканируем папку FCurrentFolder
-        end else if FindFirst(DBPath + CurCatFolder + '\*.ini', faAnyFile, SR) = 0 then begin
+        end else if (CurCatFolder <> '') and (FindFirst(DBPath + CurCatFolder + '\*.ini', faAnyFile, SR) = 0) then begin
           repeat
             AddItem(DBPath + CurCatFolder + '\' + SR.Name, '', '', HTMLContent);
           until FindNext(SR) <> 0;
@@ -1845,8 +1894,8 @@ end;
 
 procedure TMain.AboutBtnClick(Sender: TObject);
 begin
-  Application.MessageBox(PChar(Main.Caption + ' 1.0.0' + #13#10 +
-    IDS_LAST_UPDATE + ' 06.04.26' + #13#10 +
+  Application.MessageBox(PChar(Main.Caption + ' 1.1' + #13#10 +
+    IDS_LAST_UPDATE + ' 14.04.26' + #13#10 +
     'https://r57zone.github.io' + #13#10 +
     'r57zone@gmail.com' + #13#10 + #13#10 +
     'Third-party components:' + #13#10 +
@@ -2054,16 +2103,16 @@ end;
 procedure TMain.SearchEdtKeyUp(Sender: TObject; var Key: Word;
   Shift: TShiftState);
 begin
-  if SearchEdt.Text = '' then begin
-    SearchEdt.Font.Color:=clGray;
-    SearchEdt.Text:=IDS_SEARCH_TITLE;
+  if SearchEdt.Text = '' then
+    WebView.Navigate(AppFilePath + HTMLStyleFolder + '/categories.html')
+  else begin
+    if Length(SearchEdt.Text) > 2 then begin
+      IsSearch:=true;
+      CurCatName:=IDS_SEARCH_TITLE;
+    end else
+      IsSearch:=false;
+    WebView.Navigate(AppFilePath + HTMLStyleFolder + '/category.html');
   end;
-  if Length(SearchEdt.Text) > 2 then begin
-    IsSearch:=true;
-    CurCatName:=IDS_SEARCH_TITLE;
-  end else
-    IsSearch:=false;
-  WebView.Navigate(AppFilePath + HTMLStyleFolder + '/category.html');
 end;
 
 procedure TMain.SearchEdtKeyDown(Sender: TObject; var Key: Word;
@@ -2205,6 +2254,11 @@ begin
   if (Silent = false) and (UpdateFound = false) then //(RunOnce) and ...
     MessageBox(Main.Handle, PChar(IDS_NO_UPDATES_FOUND), PChar(Main.Caption), MB_ICONINFORMATION);
   //CheckUpdatesBtn.Enabled:=true;
+end;
+
+procedure TMain.SuggestProgramUpdateBtnClick(Sender: TObject);
+begin
+  ShellExecute(0, 'open', 'https://github.com/litecatalog/AppsDB/issues', nil, nil, SW_NORMAL);
 end;
 
 initialization

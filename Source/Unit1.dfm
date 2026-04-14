@@ -459,8 +459,12 @@ object Main: TMain
       object DebugLine: TMenuItem
         Caption = '-'
       end
+      object SuggestProgramUpdateBtn: TMenuItem
+        Caption = #1055#1088#1077#1076#1083#1086#1078#1080#1090#1100' '#1087#1088#1086#1075#1088#1072#1084#1084#1091' / '#1086#1073#1085#1086#1074#1083#1077#1085#1080#1077
+        OnClick = SuggestProgramUpdateBtnClick
+      end
       object ReportProblemBtn: TMenuItem
-        Caption = #1057#1086#1086#1073#1097#1080#1090#1100' '#1086' '#1087#1088#1086#1073#1083#1077#1084#1077
+        Caption = #1057#1086#1086#1073#1097#1080#1090#1100' '#1086' '#1087#1088#1086#1073#1083#1077#1084#1077' '#1082#1072#1090#1072#1083#1086#1075#1072
         OnClick = ReportProblemBtnClick
       end
       object N1: TMenuItem
