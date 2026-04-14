@@ -401,9 +401,12 @@ begin
   UserLocalCode:=AnsiLowerCase(GetUserLocaleCode);
   SystemLang:=GetLocaleInformation(LOCALE_SENGLANGUAGE);
   //UserLocalCode:='en'; SystemLang:='English';
-  if SystemLang = 'Chinese' then
-    SystemLang:='Chinese (Simplified)'
-  else if Pos('Spanish', SystemLang) > 0 then
+  if Pos('Chinese', SystemLang) > 0  then begin
+    if Pos('Traditional', SystemLang) > 0 then
+      SystemLang:='Chinese (Traditional)'
+    else
+      SystemLang:='Chinese (Simplified)';
+  end else if Pos('Spanish', SystemLang) > 0 then
     SystemLang:='Spanish'
   else if Pos('Portuguese', SystemLang) > 0 then
     SystemLang:='Portuguese';
