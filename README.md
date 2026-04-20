@@ -20,7 +20,7 @@ Catalog of open-source, free, and useful applications for Windows, with download
 
 ## ❤️ Support the Project
 
-You can support the project with a one-time donation or a subscription [here](https://boosty.to/r57).
+You can support the project with a one-time donation or a subscription [here](https://dalink.to/r57zone).
 
 
 Your contribution helps develop and maintain the project.
