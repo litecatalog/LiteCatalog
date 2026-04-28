@@ -6,7 +6,7 @@ uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, IniFiles, Buttons, ExtCtrls, ComCtrls, OleCtrls, SHDocVw,
   WinInet, ActiveX, ShellAPI, Menus, ClipBrd, SHA1, ComObj, StrUtils,
-  Registry, ShlObj, SevenZipWrapper, MSHTML;
+  Registry, ShlObj, SevenZipWrapper;
 
 type
   TDownloadParams = record
@@ -181,7 +181,7 @@ var
 
 const
   AppSite = 'https://litecatalog.github.io';
-  AppName = 'Lite catalog';
+  AppName = 'Lite Catalog';
   HTMLStyleFolder = 'Style';
   UserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:148.0) Gecko/20100101 Firefox/148.0';
   //UserAgent = 'Mozilla/5.0 (Windows NT 10.0; Trident/7.0; rv:11.0) like Gecko)';
@@ -1898,7 +1898,7 @@ end;
 procedure TMain.AboutBtnClick(Sender: TObject);
 begin
   Application.MessageBox(PChar(Main.Caption + ' 1.1' + #13#10 +
-    IDS_LAST_UPDATE + ' 14.04.26' + #13#10 +
+    IDS_LAST_UPDATE + ' 28.04.26' + #13#10 +
     'https://r57zone.github.io' + #13#10 +
     'r57zone@gmail.com' + #13#10 + #13#10 +
     'Third-party components:' + #13#10 +
@@ -2041,10 +2041,13 @@ begin
     Inc(CurrentStep);
     DonePercent:=Round(CurrentStep * 100 / TotalSteps);
     StatusBar.SimpleText := ' Download and calculating hash, done: ' + IntToStr(DonePercent) + '%';
-    DownloadAppPath:=Ini.ReadString(List[i], 'DownloadURL.x86', '');
+
+    DownloadAppPath:=Trim(Ini.ReadString(List[i], 'DownloadURL.x86', ''));
+    if (DownloadAppPath <> '') and (MessageBox(Handle, PChar('Download x86 file for "' + List[i] + '"?'), PChar(Caption), MB_YESNOCANCEL or MB_ICONQUESTION) <> IDYES) then
+      Continue;
 
     NeedHash:=Ini.ReadBool(List[i], 'HashCheck', true);
-    if (Trim(DownloadAppPath) <> '') and (HTTPDownloadFile(DownloadAppPath, DownloadsPath, DownloadedFile)) then begin
+    if (DownloadAppPath <> '') and (HTTPDownloadFile(DownloadAppPath, DownloadsPath, DownloadedFile)) then begin
       if NeedHash then
         Ini.WriteString(List[i], 'SHA1.x86', ' ' + GetSha1File(DownloadsPath + DownloadedFile))
       else
@@ -2058,8 +2061,12 @@ begin
     Inc(CurrentStep);
     DonePercent:=Round(CurrentStep * 100 / TotalSteps);
     StatusBar.SimpleText := ' Download and calculating hash, done: ' + IntToStr(DonePercent) + '%';
-    DownloadAppPath:=Ini.ReadString(List[i], 'DownloadURL.x64', '');
-    if (Trim(DownloadAppPath) <> '') and (HTTPDownloadFile(DownloadAppPath, DownloadsPath, DownloadedFile)) then begin
+    DownloadAppPath:=Trim(Ini.ReadString(List[i], 'DownloadURL.x64', ''));
+
+    if (DownloadAppPath <> '') and (MessageBox(Handle, PChar('Download x64 file for "' + List[i] + '"?'), PChar(Caption), MB_YESNOCANCEL or MB_ICONQUESTION) <> IDYES) then
+      Continue;
+
+    if (DownloadAppPath <> '') and (HTTPDownloadFile(DownloadAppPath, DownloadsPath, DownloadedFile)) then begin
       if NeedHash then
         Ini.WriteString(List[i], 'SHA1.x64', ' ' + GetSha1File(DownloadsPath + DownloadedFile))
       else
@@ -2151,7 +2158,7 @@ var
 begin
   DonateURL:=HTTPGet(AppSite + '/updates/donate.txt');
   if Trim(DonateURL) = '' then
-    DonateURL:='https://boosty.to/r57';
+    DonateURL:='https://dalink.to/r57zone';
   MessageBox(0, PChar(IDS_DONATE_MESSAGE), PChar(Caption), MB_ICONINFORMATION);
   ShellExecute(0, 'open', PChar(DonateURL), nil, nil, SW_NORMAL);
 end;
