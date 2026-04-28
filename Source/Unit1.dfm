@@ -296,6 +296,7 @@ object Main: TMain
         FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF
         00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FFFF00FF}
       Layout = blGlyphTop
+      PopupMenu = ProgramsPopupMenu
       OnClick = ProgramsBtnClick
     end
     object CatalogBtn: TSpeedButton
@@ -480,5 +481,13 @@ object Main: TMain
     Filter = #1042#1089#1105' '#1092#1072#1081#1083#1099'|*.*'
     Left = 512
     Top = 176
+  end
+  object ProgramsPopupMenu: TPopupMenu
+    Left = 448
+    Top = 176
+    object StartupFolderBtn: TMenuItem
+      Caption = #1040#1074#1090#1086#1079#1072#1087#1091#1089#1082
+      OnClick = StartupFolderBtnClick
+    end
   end
 end

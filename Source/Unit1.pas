@@ -17,6 +17,7 @@ type
     NoArchiveNoInstaller: boolean;
     DownloadOnly: boolean;
     ArchiveDesktopShortcuts: string;
+    StartupShortcut: string;
     ArchiveHasInstaller: boolean;
     ArchiveInstallerName: string;
 end;
@@ -88,6 +89,8 @@ type
     StatisticsBtn: TMenuItem;
     N2: TMenuItem;
     SuggestProgramUpdateBtn: TMenuItem;
+    ProgramsPopupMenu: TPopupMenu;
+    StartupFolderBtn: TMenuItem;
     procedure FormCreate(Sender: TObject);
     procedure DownloadsBtnClick(Sender: TObject);
     procedure WebViewBeforeNavigate2(Sender: TObject;
@@ -119,6 +122,7 @@ type
     procedure StatisticsBtnClick(Sender: TObject);
     procedure CheckUpdatesBtnClick(Sender: TObject);
     procedure SuggestProgramUpdateBtnClick(Sender: TObject);
+    procedure StartupFolderBtnClick(Sender: TObject);
   private
     procedure MessageHandler(var Msg: TMsg; var Handled: Boolean);
     procedure DownloadFile(Params: TDownloadParams; ActionType: TActionType);
@@ -140,7 +144,7 @@ type
 var
   Main: TMain;
   RunOnce: boolean = false;
-  IsDebug, GetStatistics: boolean;
+  IsDebug, GetStatistics, ForceEnLang: boolean;
   AppFilePath, AppVersion, DBVersion: string;
   OldWidth, OldHeight: integer;
   DBPath, CurCatFolder, CurCatName, CurAppFile, CurAppName: string;
@@ -148,7 +152,7 @@ var
   ViewImageLink: string;
   UserLocalCode: string;
   FActionType: TActionType;
-  DownloadsPath, ProgramsPath, DesktopPath: string;
+  DownloadsPath, ProgramsPath, DesktopPath, StartupPath: string;
   DownloadAborted: boolean;
   IsDownloadedRun, DeleteAfterRun, IsSilentInstall: boolean;
   IsSearch, IsRecommendations: boolean;
@@ -171,8 +175,8 @@ var
   IDS_DELETE_INSTALLER, IDS_SILENT_INSTALL: string;
 
   IDS_DOWNLOAD_ERROR, IDS_NO_INTERNET_OR_SERVER, IDS_FILE_NOT_FOUND_SERVER, IDS_DOWNLOAD_INCOMPLETE,
-  IDS_INVALID_HASH, IDS_EXTRACTION_IN_PROGRESS, IDS_APPLICATION_INSTALLED, IDS_DATABASE_UPDATED,
-  IDS_UPDATE_APP_LIST, IDS_UPDATE_APP, IDS_SKIP_UPDATE, IDS_NO_UPDATES_FOUND: string;
+  IDS_INVALID_HASH, IDS_ADD_SHORTCUT_TO_STARTUP, IDS_EXTRACTION_IN_PROGRESS, IDS_APPLICATION_INSTALLED,
+  IDS_DATABASE_UPDATED, IDS_UPDATE_APP_LIST, IDS_UPDATE_APP, IDS_SKIP_UPDATE, IDS_NO_UPDATES_FOUND: string;
 
   IDS_LAST_UPDATE: string;
 
@@ -281,16 +285,16 @@ var
   Path: array[0..MAX_PATH] of Char;
 begin
   SHGetSpecialFolderPath(0, Path, CSIDL_DESKTOPDIRECTORY, False);
-  Result := StrPas(Path);
+  Result:=StrPas(Path);
 end;
 
-{function GetCommonStartupFolder: string;
+function GetUserStartupFolder: string;
 var
   Path: array[0..MAX_PATH] of Char;
 begin
-  SHGetFolderPath(0, CSIDL_COMMON_STARTUP, 0, 0, Path);
-  Result:=Path;
-end;}
+  SHGetSpecialFolderPath(0, Path, CSIDL_STARTUP, False);
+  Result:=StrPas(Path);
+end;
 
 procedure TUpdateSearchThread.Execute;
 begin
@@ -325,6 +329,7 @@ var
   WND: HWND; Ini: TIniFile; Reg: TRegistry;
   SystemLang, LangFileName: string;
   UpdateSearchThread: TUpdateSearchThread;
+  i: integer;
 begin
   Constraints.MinWidth:=600;
   Constraints.MinHeight:=420;
@@ -338,10 +343,18 @@ begin
   AppFilePath:=ExtractFilePath(ParamStr(0));
 
   DesktopPath:=GetDesktopPath + '\';
+  StartupPath:=GetUserStartupFolder + '\';
   SearchList:=TStringList.Create;
 
   SevenZip.Load;
   SevenZip.OnProgress:=ZipProgress;
+
+  ForceEnLang:=false;
+  for i:=0 to ParamCount do
+    if ParamStr(i) = '-en' then
+      ForceEnLang:=true
+    else if ParamStr(i) = '-debug' then
+      IsDebug:=true;
 
   Ini:=TIniFile.Create(AppFilePath + 'Config.ini');
   AppVersion:=Ini.ReadString('App', 'Version', '1.1');
@@ -390,7 +403,8 @@ begin
 
   DBPath:=AppFilePath + 'Apps\';
 
-  IsDebug:=Ini.ReadBool('Main', 'Debug', false);
+  if IsDebug = false then
+    IsDebug:=Ini.ReadBool('Main', 'Debug', false);
   if IsDebug = false then begin
     DebugBtn.Visible:=false;
     DebugLine.Visible:=false;
@@ -400,6 +414,8 @@ begin
 
   UserLocalCode:=AnsiLowerCase(GetUserLocaleCode);
   SystemLang:=GetLocaleInformation(LOCALE_SENGLANGUAGE);
+  if ForceEnLang then
+    UserLocalCode:='en';
   //UserLocalCode:='en'; SystemLang:='English';
   if Pos('Chinese', SystemLang) > 0  then begin
     if Pos('Traditional', SystemLang) > 0 then
@@ -412,7 +428,7 @@ begin
     SystemLang:='Portuguese';
 
   LangFileName:=SystemLang + '.ini';
-  if not FileExists(AppFilePath + 'Languages\' + LangFileName) then
+  if (ForceEnLang) or (not FileExists(AppFilePath + 'Languages\' + LangFileName)) then
     LangFileName:='English.Ini';
   Ini:=TIniFile.Create(AppFilePath + 'Languages\' + LangFileName);
 
@@ -430,6 +446,7 @@ begin
   StatisticsBtn.Caption:=UTF8ToAnsi(Ini.ReadString('Main', 'STATISTICS', 'Statistics'));
   DownloadsBtn.Caption:=UTF8ToAnsi(Ini.ReadString('Main', 'DOWNLOADS', 'Downloads'));
   ProgramsBtn.Caption:=UTF8ToAnsi(Ini.ReadString('Main', 'PROGRAMS', 'Programs'));
+  StartupFolderBtn.Caption:=UTF8ToAnsi(Ini.ReadString('Main', 'STARTUP', 'Startup'));
   RemoveBtn.Caption:=UTF8ToAnsi(Ini.ReadString('Main', 'REMOVE', 'Remove'));
   DonateBtn.Caption:=UTF8ToAnsi(Ini.ReadString('Main', 'DONATE', 'Donate'));
   IDS_DONATE_MESSAGE:=UTF8ToAnsi(Ini.ReadString('Main', 'DONATE_MESSAGE', 'Thank you for your support! Your contribution helps the project grow and improve.'));
@@ -460,7 +477,7 @@ begin
   IDS_SEARCH_TITLE:=UTF8ToAnsi(Ini.ReadString('Main', 'SEARCH_TITLE', 'Search...'));
   IDS_SEARCH:=UTF8ToAnsi(Ini.ReadString('Main', 'SEARCH', 'Search'));
   SearchEdt.Text:=IDS_SEARCH_TITLE;
-  AboutBtn.Caption:= UTF8ToAnsi(Ini.ReadString('Main', 'ABOUT', 'About...'));
+  AboutBtn.Caption:=UTF8ToAnsi(Ini.ReadString('Main', 'ABOUT', 'About...'));
 
   // Категории
   IDS_RECOMMENDATIONS:=UTF8ToAnsi(Ini.ReadString('Categories', 'RECOMMENDATIONS', 'Recommendations'));
@@ -490,6 +507,7 @@ begin
   IDS_FILE_NOT_FOUND_SERVER:=UTF8ToAnsi(Ini.ReadString('Main', 'FILE_NOT_FOUND_SERVER', 'File not found on server (possibly inaccessible).'));
   IDS_DOWNLOAD_INCOMPLETE:=UTF8ToAnsi(Ini.ReadString('Main', 'DOWNLOAD_INCOMPLETE', 'Download interrupted: file downloaded incompletely.'));
   IDS_INVALID_HASH:=UTF8ToAnsi(Ini.ReadString('Main', 'INVALID_HASH', 'Invalid hash.'));
+  IDS_ADD_SHORTCUT_TO_STARTUP:=UTF8ToAnsi(Ini.ReadString('Main', 'ADD_SHORTCUT_TO_STARTUP', 'Add shortcut "%s" to startup?'));
   IDS_EXTRACTION_IN_PROGRESS:=UTF8ToAnsi(Ini.ReadString('Main', 'EXTRACTION_IN_PROGRESS', 'File extraction in progress'));
   IDS_APPLICATION_INSTALLED:=UTF8ToAnsi(Ini.ReadString('Main', 'APPLICATION_INSTALLED', 'Application is installed: %s'));
   IDS_DATABASE_UPDATED:=UTF8ToAnsi(Ini.ReadString('Main', 'DATABASE_UPDATED', 'The database has been updated'));
@@ -614,6 +632,7 @@ begin
   FParams.NoArchiveNoInstaller:=Params.NoArchiveNoInstaller;
   FParams.DownloadOnly:=Params.DownloadOnly;
   FParams.ArchiveDesktopShortcuts:=URLDecode( StringReplace(Params.ArchiveDesktopShortcuts, '\', '/', [rfReplaceAll]) );
+  FParams.StartupShortcut:=URLDecode( StringReplace(Params.StartupShortcut, '\', '/', [rfReplaceAll]) );
   FParams.ArchiveHasInstaller:=Params.ArchiveHasInstaller;
   FParams.ArchiveInstallerName:=StringReplace(Params.ArchiveInstallerName, '\', '/', [rfReplaceAll]);
 end;
@@ -830,7 +849,7 @@ begin
   end;
 end;
 
-procedure CreateDesktopShortcut(const FileName, ShortcutName: string);
+procedure CreateShortcut(const ShortcutPath, FileName, ShortcutName: string);
 var
   WShell, Shortcut: Variant;
   TargetPath: string;
@@ -838,7 +857,7 @@ begin
   if not FileExists(FileName) then Exit;
   TargetPath:=ExtractFilePath(FileName);
   WShell:=CreateOleObject('WScript.Shell');
-  Shortcut:=WShell.CreateShortcut(DesktopPath + ShortcutName + '.lnk');
+  Shortcut:=WShell.CreateShortcut(ShortcutPath + ShortcutName + '.lnk');
   Shortcut.TargetPath:=FileName;
   Shortcut.WorkingDirectory:=ExcludeTrailingPathDelimiter(TargetPath);
   Shortcut.IconLocation:=FileName + ',0';
@@ -859,12 +878,8 @@ begin
       Pair:=TStringList.Create;
       try
         Pair.Text:=StringReplace(Trim(Pairs[i]), '=', #13#10, [rfReplaceAll]);
-        if Pair.Count = 2 then begin
-          //ShowMessage(Pair[0]);
-          //ShowMessage(AppPath + Pair[1]);
-          CreateDesktopShortcut(AppPath + Pair[1], Pair[0]);
-          //if FIleExists(AppPath + Pair[1]) then ShowMessage('Существует');
-        end;
+        if Pair.Count = 2 then
+          CreateShortcut(DesktopPath, AppPath + Pair[1], Pair[0]);
       finally
         Pair.Free;
       end;
@@ -876,7 +891,7 @@ end;
 
 procedure TDownloadThread.DownloadDone;
 var
-  SR: TSearchRec; ArchiveExt: string;
+  SR: TSearchRec; ArchiveExt: string; SkipDesktopShortcuts, NeedStartupShortcut: boolean;
 begin
   if FSuccess then begin
 
@@ -928,20 +943,40 @@ begin
 
               DownloadForm.ProgressBar.Position:=0;
               DownloadForm.Caption:=IDS_EXTRACT_TITLE;
-              if SevenZip.Extract(DownloadsPath + FDownloadedFileName, ProgramsPath + CurAppName + '\') then begin
-                // Создать ярлык для exe
+              SevenZip.Extract(DownloadsPath + FDownloadedFileName, ProgramsPath + CurAppName + '\');
+
+              // Ярлыки
+              // Если задан ярлык автозапуска
+              SkipDesktopShortcuts:=false;
+              NeedStartupShortcut:=false;
+              if FParams.StartupShortcut <> '' then
+                if MessageBox(0, PChar(Format(IDS_ADD_SHORTCUT_TO_STARTUP, [CurAppName])), PChar(Main.Caption), MB_YESNOCANCEL or MB_ICONQUESTION) = IDYES then begin
+                  if FParams.StartupShortcut <> '*' then begin
+                    CreateShortcut(StartupPath, ProgramsPath + CurAppName + '\' + FParams.StartupShortcut, CurAppName);
+                    SkipDesktopShortcuts:=true;
+                  end else
+                    NeedStartupShortcut:=true;
+                  end;
+
+              // Создать ярлык для exe
+              if (not SkipDesktopShortcuts) then begin
                 if FParams.ArchiveDesktopShortcuts = '*' then begin
                   if FindFirst(ProgramsPath + CurAppName + '\*.*', faAnyFile, SR) = 0 then begin
                     repeat
                       if (SR.Attr <> faDirectory) and (AnsiLowerCase(ExtractFileExt(SR.Name)) = '.exe') then begin
-                        CreateDesktopShortcut(ProgramsPath + CurAppName + '\' + SR.Name, CurAppName);
+
+                        if not NeedStartupShortcut then // Рабочий стол
+                          CreateShortcut(DesktopPath, ProgramsPath + CurAppName + '\' + SR.Name, CurAppName)
+                        else // В автозагрузку
+                          CreateShortcut(StartupPath, ProgramsPath + CurAppName + '\' + SR.Name, CurAppName);
+
                         break;
                       end;
                     until FindNext(SR) <> 0;
                     FindClose(SR);
                   end;
-                end else if FParams.ArchiveDesktopShortcuts <> '' then
-                  CreateShortcutsFromString(FParams.ArchiveDesktopShortcuts, ProgramsPath + CurAppName + '\');
+                end else if (FParams.ArchiveDesktopShortcuts <> '') and (not NeedStartupShortcut) then
+                CreateShortcutsFromString(FParams.ArchiveDesktopShortcuts, ProgramsPath + CurAppName + '\');
               end;
 
             end;
@@ -996,7 +1031,7 @@ begin
             end else begin // Standalone app install
               if not DirectoryExists(ProgramsPath + CurAppName) then CreateDir(ProgramsPath + CurAppName);
               CopyFile(PChar(DownloadsPath + FDownloadedFileName), PChar(ProgramsPath + CurAppName + '\' + FDownloadedFileName), false);
-              CreateDesktopShortcut(ProgramsPath + CurAppName + '\' + FDownloadedFileName, CurAppName);
+              CreateShortcut(DesktopPath, ProgramsPath + CurAppName + '\' + FDownloadedFileName, CurAppName);
             end;
           end;
 
@@ -1088,7 +1123,7 @@ procedure TMain.WebViewBeforeNavigate2(Sender: TObject;
   Headers: OleVariant; var Cancel: WordBool);
 var
   URLParams: string;
-  DownloadURL, SHA, SilentParams, ArchiveDesktopShortcuts, ArchiveInstallerName: string;
+  DownloadURL, SHA, SilentParams, ArchiveDesktopShortcuts, StartupShortcut, ArchiveInstallerName: string;
   NoArchiveNoInstaller, ArchiveHasInstallerStr, DownloadOnly: string;
   ArchiveHasInstaller: boolean;
   Doc: Variant;
@@ -1145,6 +1180,11 @@ begin
     ArchiveDesktopShortcuts:=Copy(URLParams, 1, TempPos - 1);
     Delete(URLParams, 1, TempPos);
 
+    // Startup Shortcut
+    TempPos:=Pos('|', URLParams);
+    StartupShortcut:=Copy(URLParams, 1, TempPos - 1);
+    Delete(URLParams, 1, TempPos);
+
     // ArchiveHasInstaller
     TempPos:=Pos('|', URLParams);
     ArchiveHasInstallerStr:=Copy(URLParams, 1, TempPos - 1);
@@ -1165,6 +1205,7 @@ begin
     ShowMessage(NoArchiveNoInstaller);
     ShowMessage(DownloadOnly);
     ShowMessage('ArchiveDesktopShortcuts=' + ArchiveDesktopShortcuts);
+    ShowMessage('StartupShortcut=' + StartupShortcut);
     ShowMessage('AppName=' + CurAppName);
     Exit;}
 
@@ -1175,6 +1216,7 @@ begin
     DownloadParams.NoArchiveNoInstaller:=NoArchiveNoInstaller = '1';
     DownloadParams.DownloadOnly:=DownloadOnly = '1';
     DownloadParams.ArchiveDesktopShortcuts:=ArchiveDesktopShortcuts;
+    DownloadParams.StartupShortcut:=StartupShortcut;
     DownloadParams.ArchiveHasInstaller:=ArchiveHasInstaller;
     DownloadParams.ArchiveInstallerName:=ArchiveInstallerName;
 
@@ -1297,7 +1339,7 @@ procedure AddItem(FileName, ItemCatFolder, ItemCatName: string; var HTMLContent:
 var
   Ini: TMemIniFile;
   AppName, AppDescr, AppIcon, Site, DownloadPage, DownloadX86, DownloadX64, DownloadX86Hash, DownloadX64Hash,
-  SilentParams, ArchiveDesktopShortcuts: WideString;
+  SilentParams, ArchiveDesktopShortcuts, StartupShortcut: WideString;
   ArchiveHasInstaller, ArchiveInstallerName: WideString;
   NoArchiveNoInstaller, DownloadOnly: string;
 begin
@@ -1309,6 +1351,7 @@ begin
     NoArchiveNoInstaller:=IntToStr(Ord(Ini.ReadBool('App', 'NoArchiveNoInstaller', false)));
     DownloadOnly:=IntToStr(Ord(Ini.ReadBool('App', 'DownloadOnly', false)));
     ArchiveDesktopShortcuts:=StringReplace( Trim(GetIniStr(Ini, 'App', 'ArchiveDesktopShortcuts')) , '\', '/', [rfReplaceAll]);
+    StartupShortcut:=StringReplace( Trim(GetIniStr(Ini, 'App', 'StartupShortcut')) , '\', '/', [rfReplaceAll]);
     ArchiveHasInstaller:=Trim(GetIniStr(Ini, 'App', 'ArchiveHasInstaller'));
     ArchiveInstallerName:=StringReplace( Trim(GetIniStr(Ini, 'App', 'ArchiveInstallerName')) , '\', '/', [rfReplaceAll]);
 
@@ -1350,7 +1393,7 @@ begin
         HTMLContent:=HTMLContent +'<span class="meta">' + IDS_CATEGORY + ': ' + ItemCatName + '</span>';
 
       if DownloadX64 <> '' then
-        HTMLContent:=HTMLContent + '<button class="btn btn-download" onclick="document.location=''download://' + DownloadX64 + '|' + DownloadX64Hash + '|' + SilentParams + '|' + NoArchiveNoInstaller + '|' + DownloadOnly + '|' + ArchiveDesktopShortcuts + '|' + ArchiveHasInstaller + '|' + ArchiveInstallerName + '|' + AppName + '''"><img src="icons/download.png" alt="" />' + IDS_DOWNLOAD + '</button>';
+        HTMLContent:=HTMLContent + '<button class="btn btn-download" onclick="document.location=''download://' + DownloadX64 + '|' + DownloadX64Hash + '|' + SilentParams + '|' + NoArchiveNoInstaller + '|' + DownloadOnly + '|' + ArchiveDesktopShortcuts + '|' + StartupShortcut + '|' + ArchiveHasInstaller + '|' + ArchiveInstallerName + '|' + AppName + '''"><img src="icons/download.png" alt="" />' + IDS_DOWNLOAD + '</button>';
 
       // Сайт и страница загрузки
       Site:=Trim( UTF8Decode( UTF8String(Ini.ReadString('App', 'Website', '')) ) );
@@ -1409,7 +1452,8 @@ end;
 
 procedure AddOldVersionBlock(Ini: TCustomIniFile; const Section, OSLabel: string; var AppInfo: TAppInfo);
 var
-  DownloadPage, DownloadX86, DownloadX64, DownloadX86Hash, DownloadX64Hash, SilentParams, ArchiveDesktopShortcuts: WideString;
+  DownloadPage, DownloadX86, DownloadX64, DownloadX86Hash, DownloadX64Hash, SilentParams,
+  ArchiveDesktopShortcuts, StartupShortcut: WideString;
   AppSize, AppSize2, AppsSizes: string;
   AppNotes, ArchiveHasInstaller, ArchiveInstallerName: WideString;
   NoArchiveNoInstaller, DownloadOnly: string;
@@ -1422,6 +1466,7 @@ begin
   NoArchiveNoInstaller:=IntToStr(Ord(Ini.ReadBool(Section, 'NoArchiveNoInstaller', false)));
   DownloadOnly:=IntToStr(Ord(Ini.ReadBool(Section, 'DonwloadOnly', false)));
   ArchiveDesktopShortcuts:=StringReplace( Trim(GetIniStr(Ini, Section, 'ArchiveDesktopShortcuts')) , '\', '/', [rfReplaceAll]);
+  StartupShortcut:=StringReplace( Trim(GetIniStr(Ini, Section, 'StartupShortcut')) , '\', '/', [rfReplaceAll]);
   ArchiveHasInstaller:=Trim(GetIniStr(Ini, Section, 'ArchiveHasInstaller'));
   ArchiveInstallerName:=StringReplace( Trim(GetIniStr(Ini, Section, 'ArchiveInstallerName')) , '\', '/', [rfReplaceAll]);
 
@@ -1458,13 +1503,13 @@ begin
     if DownloadX64 <> '' then
       AppInfo.OldVersions:=AppInfo.OldVersions +
         '<button class="btn btn-download" onclick="document.location=''download://' +
-        DownloadX64 + '|' + DownloadX64Hash + '|' + SilentParams  + '|' + NoArchiveNoInstaller + '|' + DownloadOnly + '|' + ArchiveDesktopShortcuts + '|' + ArchiveHasInstaller + '|' + ArchiveInstallerName + '|' + AppInfo.Name + '''"><img src="icons/download.png" alt="" />' +
+        DownloadX64 + '|' + DownloadX64Hash + '|' + SilentParams  + '|' + NoArchiveNoInstaller + '|' + DownloadOnly + '|' + ArchiveDesktopShortcuts + '|' + StartupShortcut + '|' + ArchiveHasInstaller + '|' + ArchiveInstallerName + '|' + AppInfo.Name + '''"><img src="icons/download.png" alt="" />' +
         IDS_DOWNLOAD + ' (x64)</button>';
 
     if DownloadX86 <> '' then
       AppInfo.OldVersions:=AppInfo.OldVersions +
         '<button class="btn btn-download" onclick="document.location=''download://' +
-        DownloadX86 + '|' + DownloadX86Hash + '|' + SilentParams  + '|' + NoArchiveNoInstaller + '|' + DownloadOnly + '|' + ArchiveDesktopShortcuts + '|' + ArchiveHasInstaller + '|' + ArchiveInstallerName + '|' + AppInfo.Name + '''"><img src="icons/download.png" alt="" />' +
+        DownloadX86 + '|' + DownloadX86Hash + '|' + SilentParams  + '|' + NoArchiveNoInstaller + '|' + DownloadOnly + '|' + ArchiveDesktopShortcuts + '|' + StartupShortcut + '|' + ArchiveHasInstaller + '|' + ArchiveInstallerName + '|' + AppInfo.Name + '''"><img src="icons/download.png" alt="" />' +
         IDS_DOWNLOAD + ' ' + IfThen(Trim(DownloadX64) <> '','(x86)') + '</button>';
 
     if (DownloadX86 = '') and (DownloadX64 = '') and (DownloadPage <> '') then
@@ -1478,7 +1523,7 @@ procedure GetAppInfo(FileName: string; var AppInfo: TAppInfo);
 var
   Ini: TMemIniFile;
   AppDescr, Site, DownloadX86, DownloadX64, DownloadX86Hash, DownloadX64Hash,
-  SilentParams, RequiredComponents, AppNotes, ArchiveDesktopShortcuts: WideString;
+  SilentParams, RequiredComponents, AppNotes, ArchiveDesktopShortcuts, StartupShortcut: WideString;
   NoArchiveNoInstaller, DownloadOnly, AppSize, AppSize2, AppsSizes: string;
   DonatePage, DownloadPage, ArchiveHasInstaller, ArchiveInstallerName: WideString;
 begin
@@ -1492,6 +1537,7 @@ begin
     NoArchiveNoInstaller:=IntToStr(Ord(Ini.ReadBool('App', 'NoArchiveNoInstaller', false)));
     DownloadOnly:=IntToStr(Ord(Ini.ReadBool('App', 'DownloadOnly', false)));
     ArchiveDesktopShortcuts:=StringReplace( Trim(GetIniStr(Ini, 'App', 'ArchiveDesktopShortcuts')), '\', '/', [rfReplaceAll]);
+    StartupShortcut:=StringReplace( Trim(GetIniStr(Ini, 'App', 'StartupShortcut')), '\', '/', [rfReplaceAll]);
     ArchiveHasInstaller:=Trim(GetIniStr(Ini, 'App', 'ArchiveHasInstaller'));
     ArchiveInstallerName:=Trim(GetIniStr(Ini, 'App', 'ArchiveInstallerName'));
     RequiredComponents:=Trim(GetIniStr(Ini, 'App', 'RequiredComponents'));
@@ -1521,10 +1567,10 @@ begin
     '<td width="8"></td><td valign="middle"><h3>' + AppInfo.Name + '</h3>' + GetIniStr(Ini, 'App', 'Description') + '</td></tr></tbody></table>';
 
     if DownloadX64 <> '' then
-      AppInfo.Buttons:='<button class="btn btn-download" onclick="document.location=''download://' + DownloadX64 + '|' + DownloadX64Hash + '|' + SilentParams + '|' + NoArchiveNoInstaller + '|' + DownloadOnly + '|' + ArchiveDesktopShortcuts + '|' + ArchiveHasInstaller + '|' + ArchiveInstallerName + '|' + AppInfo.Name + '''"><img src="icons/download.png" alt="" />' + IDS_DOWNLOAD + ' (x64)</button>';
+      AppInfo.Buttons:='<button class="btn btn-download" onclick="document.location=''download://' + DownloadX64 + '|' + DownloadX64Hash + '|' + SilentParams + '|' + NoArchiveNoInstaller + '|' + DownloadOnly + '|' + ArchiveDesktopShortcuts + '|' + StartupShortcut + '|' + ArchiveHasInstaller + '|' + ArchiveInstallerName + '|' + AppInfo.Name + '''"><img src="icons/download.png" alt="" />' + IDS_DOWNLOAD + ' (x64)</button>';
 
     if DownloadX86 <> '' then
-      AppInfo.Buttons:=AppInfo.Buttons + '<button class="btn btn-download" onclick="document.location=''download://' + DownloadX86 + '|' + DownloadX86Hash + '|' + SilentParams + '|' + NoArchiveNoInstaller + '|' + DownloadOnly + '|' + ArchiveDesktopShortcuts + '|' + ArchiveHasInstaller + '|' + ArchiveInstallerName + '|' + AppInfo.Name + '''"><img src="icons/download.png" alt="" />' + IDS_DOWNLOAD + ' ' + IfThen(Trim(DownloadX64) <> '','(x86)') + '</button>';
+      AppInfo.Buttons:=AppInfo.Buttons + '<button class="btn btn-download" onclick="document.location=''download://' + DownloadX86 + '|' + DownloadX86Hash + '|' + SilentParams + '|' + NoArchiveNoInstaller + '|' + DownloadOnly + '|' + ArchiveDesktopShortcuts + '|' + StartupShortcut + '|' + ArchiveHasInstaller + '|' + ArchiveInstallerName + '|' + AppInfo.Name + '''"><img src="icons/download.png" alt="" />' + IDS_DOWNLOAD + ' ' + IfThen(Trim(DownloadX64) <> '','(x86)') + '</button>';
 
     // Сайт и страница загрузки
     Site:=Trim( UTF8Decode( UTF8String(Ini.ReadString('App', 'Website', '')) ) );
@@ -1897,7 +1943,7 @@ end;
 
 procedure TMain.AboutBtnClick(Sender: TObject);
 begin
-  Application.MessageBox(PChar(Main.Caption + ' 1.1' + #13#10 +
+  Application.MessageBox(PChar(Main.Caption + ' 1.2' + #13#10 +
     IDS_LAST_UPDATE + ' 28.04.26' + #13#10 +
     'https://r57zone.github.io' + #13#10 +
     'r57zone@gmail.com' + #13#10 + #13#10 +
@@ -2224,6 +2270,7 @@ begin
           DownloadParams.NoArchiveNoInstaller:=false;
           DownloadParams.DownloadOnly:=false;
           DownloadParams.ArchiveDesktopShortcuts:='';
+          DownloadParams.StartupShortcut:='';
           DownloadParams.ArchiveHasInstaller:=false;
           DownloadParams.ArchiveInstallerName:='';
 
@@ -2269,6 +2316,11 @@ end;
 procedure TMain.SuggestProgramUpdateBtnClick(Sender: TObject);
 begin
   ShellExecute(0, 'open', 'https://github.com/litecatalog/AppsDB/issues', nil, nil, SW_NORMAL);
+end;
+
+procedure TMain.StartupFolderBtnClick(Sender: TObject);
+begin
+  ShellExecute(0, 'open', PChar(StartupPath), nil, nil, SW_SHOWNORMAL);
 end;
 
 initialization
