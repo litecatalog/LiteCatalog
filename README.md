@@ -69,6 +69,7 @@ Key fields:
 | `StartupShortcut` | If the application needs to create a startup shortcut, you can specify the name of the exe or simply use `*` for automatic program detection |
 | `ArchiveHasInstaller` | The archive contains an installer (1 - yes) |
 | `ArchiveInstallerName` | Installer name inside the archive |
+
 The remaining parameters can be found in the [example](https://github.com/litecatalog/AppsDB/blob/master/Default.ini).
 
 
