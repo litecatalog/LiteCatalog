@@ -26,7 +26,7 @@ You can support the project with a [one-time donation](https://dalink.to/r57zone
 Your contribution helps develop and maintain the project.
 
 ## 🚀 Download
->Version for Windows 10 and 11.
+>Supports Windows 7, 8, 8.1, 10, 11.
 
 **[Download](https://github.com/litecatalog/LiteCatalog/releases)**
 
@@ -65,11 +65,15 @@ Key fields:
 | `HashCheck` | Hash verification (1 - yes, 0 - no) |
 | `SilentParams` | Silent installation parameters, "%PROGRAMS%" is replaced with the selected programs folder |
 | `NoArchiveNoInstaller` | The file is a standalone program (e.g., the link points directly to an exe file) |
-| `ArchiveDesktopShortcuts` | Shortcuts for portable apps (`<Name>=<Path in archive to app>`, separated by `;`) |
+| `ArchiveDesktopShortcuts` | Shortcuts for portable applications. You can specify creation of specific shortcuts in the format `<Name>=<Path inside archive to application>`, separated by `;`, or enable automatic shortcut creation for an exe using `*` |
+| `StartupShortcut` | If the application needs to create a startup shortcut, you can specify the name of the exe or simply use `*` for automatic program detection |
 | `ArchiveHasInstaller` | The archive contains an installer (1 - yes) |
 | `ArchiveInstallerName` | Installer name inside the archive |
+The remaining parameters can be found in the [example](https://github.com/litecatalog/AppsDB/blob/master/Default.ini).
 
-To automatically calculate file hashes and sizes, use the debug tool. Enable debug mode by setting `Debug` to `1` in the `Config.ini` file. Then, in the menu, choose `Calculate hashes and URL sizes from config`. You can also view the shortened locale name there.
+
+
+To automatically calculate file hashes and sizes, use the debug tool. Enable debug mode by setting `Debug` to `1` in the `Config.ini` file or by running the program with the `-en` parameter. Then, in the menu, choose `Calculate hashes and URL sizes from config`. You can also view the shortened locale name there.
 
 To translate to other languages, create a section with the necessary parameters: `[App.Locale.<locale_name>]`.
 

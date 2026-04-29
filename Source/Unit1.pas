@@ -175,8 +175,8 @@ var
   IDS_DELETE_INSTALLER, IDS_SILENT_INSTALL: string;
 
   IDS_DOWNLOAD_ERROR, IDS_NO_INTERNET_OR_SERVER, IDS_FILE_NOT_FOUND_SERVER, IDS_DOWNLOAD_INCOMPLETE,
-  IDS_INVALID_HASH, IDS_ADD_SHORTCUT_TO_STARTUP, IDS_EXTRACTION_IN_PROGRESS, IDS_APPLICATION_INSTALLED,
-  IDS_DATABASE_UPDATED, IDS_UPDATE_APP_LIST, IDS_UPDATE_APP, IDS_SKIP_UPDATE, IDS_NO_UPDATES_FOUND: string;
+  IDS_INVALID_HASH, IDS_ADD_SHORTCUT_TO_STARTUP, IDS_APPLICATION_INSTALLED, IDS_DATABASE_UPDATED,
+  IDS_UPDATE_APP_LIST, IDS_UPDATE_APP, IDS_SKIP_UPDATE, IDS_NO_UPDATES_FOUND: string;
 
   IDS_LAST_UPDATE: string;
 
@@ -508,7 +508,6 @@ begin
   IDS_DOWNLOAD_INCOMPLETE:=UTF8ToAnsi(Ini.ReadString('Main', 'DOWNLOAD_INCOMPLETE', 'Download interrupted: file downloaded incompletely.'));
   IDS_INVALID_HASH:=UTF8ToAnsi(Ini.ReadString('Main', 'INVALID_HASH', 'Invalid hash.'));
   IDS_ADD_SHORTCUT_TO_STARTUP:=UTF8ToAnsi(Ini.ReadString('Main', 'ADD_SHORTCUT_TO_STARTUP', 'Add shortcut "%s" to startup?'));
-  IDS_EXTRACTION_IN_PROGRESS:=UTF8ToAnsi(Ini.ReadString('Main', 'EXTRACTION_IN_PROGRESS', 'File extraction in progress'));
   IDS_APPLICATION_INSTALLED:=UTF8ToAnsi(Ini.ReadString('Main', 'APPLICATION_INSTALLED', 'Application is installed: %s'));
   IDS_DATABASE_UPDATED:=UTF8ToAnsi(Ini.ReadString('Main', 'DATABASE_UPDATED', 'The database has been updated'));
 
@@ -929,7 +928,6 @@ begin
         ArchiveExt:=AnsiLowerCase(ExtractFileExt(FDownloadedFileName));
         if (ArchiveExt = '.zip') or (ArchiveExt = '.7z') or (ArchiveExt = '.rar') then begin
 
-          Main.StatusBar.SimpleText:=' ' + IDS_EXTRACTION_IN_PROGRESS;
           Application.ProcessMessages;
 
           // Archive install
