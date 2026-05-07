@@ -31,8 +31,21 @@
 .old-version-block{padding: 0 12px;}
 #old-toggle-icon{font-size:10px;}
 
-#app-screenshots img {height:130px; border:1px solid #ccc; margin-right:8px; cursor:pointer; }
-#screenshots{margin:10px;}
+#screenshots {
+	margin:10px;
+	overflow-x:auto;
+	overflow-y:hidden;
+	white-space:nowrap;
+}
+
+#screenshots img {
+	display:inline-block;
+	height:130px;
+	border:1px solid #ccc;
+	margin-right:8px;
+	cursor:pointer;
+	vertical-align:top;
+}
 
 .details{background-color:#fdfdfd; border:1px solid #e7e7e7; margin-top:10px; border-radius:10px; opacity:0.9; word-break:break-all; word-wrap:break-word;}
 .detail-header{border-top-left-radius:10px; border-top-right-radius:10px; border-bottom:1px solid #e7e7e7; padding:6px; font-weight:bold; background-color:#e7e7e7;}
