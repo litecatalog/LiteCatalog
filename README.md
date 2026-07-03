@@ -74,7 +74,7 @@ The remaining parameters can be found in the [example](https://github.com/liteca
 
 
 
-To automatically calculate file hashes and sizes, use the debug tool. Enable debug mode by setting `Debug` to `1` in the `Config.ini` file or by running the program with the `-en` parameter. Then, in the menu, choose `Calculate hashes and URL sizes from config`. You can also view the shortened locale name there.
+To automatically calculate file hashes and sizes, use the debug tool. Enable debug mode by setting `Debug` to `1` in the `Config.ini` file or by running the program with the `-debug` parameter. Then, in the menu, choose `Calculate hashes and URL sizes from config`. You can also view the shortened locale name there.
 
 To translate to other languages, create a section with the necessary parameters: `[App.Locale.<locale_name>]`.
 
