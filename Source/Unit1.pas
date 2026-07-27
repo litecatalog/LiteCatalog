@@ -166,9 +166,9 @@ var
   IDS_CAT_DEVELOPMENT_ENGINEERING, IDS_CAT_G_TOOLS, IDS_CAT_OTHER: string;
 
   IDS_DONATE_MESSAGE, IDS_SEARCH, IDS_SEARCH_TITLE, IDS_CATALOG, IDS_CATEGORY, IDS_DOWNLOAD, IDS_MORE,
-  IDS_OLD_VERSIONS, IDS_SCREENSHOTS, IDS_ADDITIONAL_INFORMATION, IDS_VERSION, IDS_LICENSE, IDS_DOWNLOAD_PAGE,
-  IDS_DESCRIPTION, IDS_SITE, IDS_SIZE, IDS_SIZE_KB, IDS_SIZE_MB, IDS_SIZE_GB, IDS_REQUIRED_COMPONENTS,
-  IDS_NOTES, IDS_OS: string;
+  IDS_OLD_VERSIONS, IDS_SCREENSHOTS, IDS_ADDITIONAL_INFORMATION, IDS_VERSION, IDS_DEVELOPER, IDS_LICENSE,
+  IDS_COMPATIBILITY, IDS_DOWNLOAD_PAGE, IDS_DESCRIPTION, IDS_SITE, IDS_SIZE, IDS_SIZE_KB, IDS_SIZE_MB,
+  IDS_SIZE_GB, IDS_REQUIRED_COMPONENTS, IDS_NOTES: string;
 
   IDS_DOWNLOAD_TITLE, IDS_EXTRACT_TITLE, IDS_DB_UPDATE, IDS_OK, IDS_CANCEL, IDS_SCREENSHOT,
   IDS_DOWNLOAD_FOLDER, IDS_SELECT, IDS_SELECT_FOLDER, IDS_PROGRAMS_FOLDER, IDS_RUN_AFTER_DOWNLOAD,
@@ -461,6 +461,8 @@ begin
   IDS_SCREENSHOTS:=UTF8ToAnsi(Ini.ReadString('Main', 'SCREENSHOTS', 'Screenshots'));
   IDS_ADDITIONAL_INFORMATION:=UTF8ToAnsi(Ini.ReadString('Main', 'ADDITIONAL_INFORMATION', 'Additional information'));
   IDS_VERSION:=UTF8ToAnsi(Ini.ReadString('Main', 'VERSION', 'Version'));
+  IDS_DEVELOPER:=UTF8ToAnsi(Ini.ReadString('Main', 'DEVELOPER', 'Developer'));
+  IDS_COMPATIBILITY:=UTF8ToAnsi(Ini.ReadString('Main', 'COMPATIBILITY', 'Compatibility'));
   IDS_LICENSE:=UTF8ToAnsi(Ini.ReadString('Main', 'LICENSE', 'License'));
   IDS_DESCRIPTION:=UTF8ToAnsi(Ini.ReadString('Main', 'DESCRIPTION', 'Description'));
   IDS_SITE:=UTF8ToAnsi(Ini.ReadString('Main', 'SITE', 'Site'));
@@ -471,7 +473,6 @@ begin
   IDS_SIZE_GB:=UTF8ToAnsi(Ini.ReadString('Main', 'SIZE_GB', 'GB'));
   IDS_REQUIRED_COMPONENTS:=UTF8ToAnsi(Ini.ReadString('Main', 'REQUIRED_COMPONENTS', 'Required components'));
   IDS_NOTES:=UTF8ToAnsi(Ini.ReadString('Main', 'NOTES', 'Notes'));
-  IDS_OS:=UTF8ToAnsi(Ini.ReadString('Main', 'OS', 'OS'));
   IDS_OLD_VERSIONS:=UTF8ToAnsi(Ini.ReadString('Main', 'OLD_VERSIONS', 'Old Versions'));
   IDS_LAST_UPDATE:=UTF8ToAnsi(Ini.ReadString('Main', 'LAST_UPDATE', 'Last Update'));
   IDS_SEARCH_TITLE:=UTF8ToAnsi(Ini.ReadString('Main', 'SEARCH_TITLE', 'Search...'));
@@ -1448,11 +1449,21 @@ begin
     Delete(Result, 1, 4);
 end;
 
+function ISO8601ToDate(const S: string): TDateTime;
+var
+  Y, M, D: Word;
+begin
+  Y:=StrToInt(Copy(S, 1, 4));
+  M:=StrToInt(Copy(S, 6, 2));
+  D:=StrToInt(Copy(S, 9, 2));
+  Result:=EncodeDate(Y, M, D);
+end;
+
 procedure AddOldVersionBlock(Ini: TCustomIniFile; const Section, OSLabel: string; var AppInfo: TAppInfo);
 var
   DownloadPage, DownloadX86, DownloadX64, DownloadX86Hash, DownloadX64Hash, SilentParams,
   ArchiveDesktopShortcuts, StartupShortcut: WideString;
-  AppSize, AppSize2, AppsSizes: string;
+  AppLastUpdated, AppSize, AppSize2, AppsSizes: string;
   AppNotes, ArchiveHasInstaller, ArchiveInstallerName: WideString;
   NoArchiveNoInstaller, DownloadOnly: string;
 begin
@@ -1467,6 +1478,9 @@ begin
   StartupShortcut:=StringReplace( Trim(GetIniStr(Ini, Section, 'StartupShortcut')) , '\', '/', [rfReplaceAll]);
   ArchiveHasInstaller:=Trim(GetIniStr(Ini, Section, 'ArchiveHasInstaller'));
   ArchiveInstallerName:=StringReplace( Trim(GetIniStr(Ini, Section, 'ArchiveInstallerName')) , '\', '/', [rfReplaceAll]);
+  AppLastUpdated:=Trim(GetIniStr(Ini, Section, 'LastUpdate'));
+  if AppLastUpdated <> '' then
+    AppLastUpdated:=DateToStr(ISO8601ToDate(AppLastUpdated));
 
   if Ini.ReadBool(Section, 'HashCheck', true) then begin
     DownloadX86Hash:=GetIniStr(Ini, Section, 'SHA1.x86');
@@ -1484,10 +1498,12 @@ begin
   if (Trim(DownloadX86) <> '') or (Trim(DownloadX64) <> '') or (DownloadPage <> '') then begin
     AppInfo.OldVersions:=AppInfo.OldVersions +
       '<div class="old-version-block"><div class="details" id="app-details">' +
-      '<div class="detail"><div class="detail-title">' + IDS_OS + '</div><div class="detail-descr">' + OSLabel + '</div></div>' +
-      '<div class="detail"><div class="detail-title">' + IDS_VERSION + '</div><div class="detail-descr">' + GetIniStr(Ini, Section, 'Version') + '</div></div>' +
-      '<div class="detail"><div class="detail-title">' + IDS_SIZE + '</div><div class="detail-descr">' + AppsSizes + '</div></div>' +
-      '<div class="clear"></div></div>';
+      '<div class="detail"><div class="detail-title">' + IDS_COMPATIBILITY + '</div><div class="detail-descr">' + OSLabel + '</div></div>' +
+      '<div class="detail"><div class="detail-title">' + IDS_VERSION + '</div><div class="detail-descr">' + GetIniStr(Ini, Section, 'Version') + '</div></div>';
+    if AppLastUpdated <> '' then
+      AppInfo.OldVersions:=AppInfo.OldVersions + '<div class="detail"><div class="detail-title">' + IDS_LAST_UPDATE + '</div><div class="detail-descr">' + AppLastUpdated + '</div></div>';
+
+    AppInfo.OldVersions:=AppInfo.OldVersions + '<div class="detail"><div class="detail-title">' + IDS_SIZE + '</div><div class="detail-descr">' + AppsSizes + '</div></div>' + '<div class="clear"></div></div>';
 
     end;
 
@@ -1521,8 +1537,9 @@ procedure GetAppInfo(FileName: string; var AppInfo: TAppInfo);
 var
   Ini: TMemIniFile;
   AppDescr, Site, DownloadX86, DownloadX64, DownloadX86Hash, DownloadX64Hash,
-  SilentParams, RequiredComponents, AppNotes, ArchiveDesktopShortcuts, StartupShortcut: WideString;
-  NoArchiveNoInstaller, DownloadOnly, AppSize, AppSize2, AppsSizes: string;
+  SilentParams, RequiredComponents, AppSupportedOS, AppDeveloper, AppNotes,
+  ArchiveDesktopShortcuts, StartupShortcut: WideString;
+  NoArchiveNoInstaller, DownloadOnly, AppLastUpdated, AppSize, AppSize2, AppsSizes: string;
   DonatePage, DownloadPage, ArchiveHasInstaller, ArchiveInstallerName: WideString;
 begin
   Ini:=TMemIniFile.Create(FileName);
@@ -1539,6 +1556,9 @@ begin
     ArchiveHasInstaller:=Trim(GetIniStr(Ini, 'App', 'ArchiveHasInstaller'));
     ArchiveInstallerName:=Trim(GetIniStr(Ini, 'App', 'ArchiveInstallerName'));
     RequiredComponents:=Trim(GetIniStr(Ini, 'App', 'RequiredComponents'));
+    AppDeveloper:=GetIniStr(Ini, 'App', 'Developer');
+    AppSupportedOS:=GetIniStr(Ini, 'App', 'SupportedOS');
+
     AppNotes:=Trim(GetIniStr(Ini, 'App', 'Notes'));
     if (Length(RequiredComponents) > 0) and (RequiredComponents[Length(RequiredComponents)] = ';') then
       Delete(RequiredComponents, Length(RequiredComponents), 1);
@@ -1560,6 +1580,10 @@ begin
       AppInfo.Icon:=StringReplace(AppFilePath + HTMLStyleFolder, '\', '/', [rfReplaceAll]) + '/icons/app.png'
     else
       AppInfo.Icon:=StringReplace(DBPath + CurCatFolder, '\', '/', [rfReplaceAll]) + '/icons/' + AppInfo.Icon;
+
+    AppLastUpdated:=Trim(GetIniStr(Ini, 'App', 'LastUpdate'));
+    if AppLastUpdated <> '' then
+      AppLastUpdated:=DateToStr(ISO8601ToDate(AppLastUpdated));
 
     AppInfo.Header:='<table><tbody><tr><td valign="middle"><img width="48px" src="' + AppInfo.Icon + '" alt="' + AppInfo.Name + '" /></td>' +
     '<td width="8"></td><td valign="middle"><h3>' + AppInfo.Name + '</h3>' + GetIniStr(Ini, 'App', 'Description') + '</td></tr></tbody></table>';
@@ -1593,7 +1617,12 @@ begin
 
     AppInfo.Screenshots:=BuildScreenshotsHTML(UTF8Decode(UTF8String(Ini.ReadString('App', 'Screenshots', ''))));
 
+    // Версия
     AppInfo.Details:='<div class="detail-header">' + IDS_ADDITIONAL_INFORMATION + '</div><div class="detail"><div class="detail-title">' + IDS_VERSION + '</div><div class="detail-descr">' + GetIniStr(Ini, 'App', 'Version') + '</div></div>';
+
+    // Дата последнего обновления
+    if AppLastUpdated <> '' then
+      AppInfo.Details:=AppInfo.Details + '<div class="detail"><div class="detail-title">' + IDS_LAST_UPDATE + '</div><div class="detail-descr">' + AppLastUpdated + '</div></div>';
 
     // Размер
     AppSize:=FormatFileSize(StrToIntDef(GetIniStr(Ini, 'App', 'SizeBytes.x64'), 0));
@@ -1603,9 +1632,15 @@ begin
 
     AppInfo.Details:=AppInfo.Details + '<div class="detail"><div class="detail-title">' + IDS_SIZE + '</div><div class="detail-descr">' + AppsSizes + '</div></div>';
 
-    AppInfo.Details:=AppInfo.Details+ '<div class="detail"><div class="detail-title">' + IDS_LICENSE + '</div><div class="detail-descr">' + GetIniStr(Ini, 'App', 'License') + '</div></div>';
+    if AppSupportedOS <> '' then
+      AppInfo.Details:=AppInfo.Details+ '<div class="detail"><div class="detail-title">' + IDS_COMPATIBILITY + '</div><div class="detail-descr">' + AppSupportedOS + '</div></div>';
 
     AppInfo.Details:=AppInfo.Details + '<div class="detail"><div class="detail-title">' + IDS_CATEGORY + '</div><div class="detail-descr">' + CurCatName + '</div></div>';
+
+    AppInfo.Details:=AppInfo.Details+ '<div class="detail"><div class="detail-title">' + IDS_LICENSE + '</div><div class="detail-descr">' + GetIniStr(Ini, 'App', 'License') + '</div></div>';
+
+    if AppDeveloper <> '' then
+      AppInfo.Details:=AppInfo.Details+ '<div class="detail"><div class="detail-title">' + IDS_DEVELOPER + '</div><div class="detail-descr">' + AppDeveloper + '</div></div>';
 
     if Site <> '-' then
       AppInfo.Details:=AppInfo.Details + '<div class="detail"><div class="detail-title">' + IDS_SITE + '</div><div class="detail-descr"><a href="' + Site + '" title="' + Site + '">' +  RemoveHttp(Site) + '</a></div></div>'
@@ -1941,8 +1976,8 @@ end;
 
 procedure TMain.AboutBtnClick(Sender: TObject);
 begin
-  Application.MessageBox(PChar(Main.Caption + ' 1.2' + #13#10 +
-    IDS_LAST_UPDATE + ' 28.04.26' + #13#10 +
+  Application.MessageBox(PChar(Main.Caption + ' 1.3' + #13#10 +
+    IDS_LAST_UPDATE + ' 27.07.26' + #13#10 +
     'https://r57zone.github.io' + #13#10 +
     'r57zone@gmail.com' + #13#10 + #13#10 +
     'Third-party components:' + #13#10 +
