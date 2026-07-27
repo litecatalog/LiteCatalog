@@ -5,32 +5,32 @@
 # Lite Catalog
 Catalog of open-source, free, and useful applications for Windows, with download and installation support.
 
-## 🖼️ Screenshots
+## Screenshots
 [![](https://github.com/user-attachments/assets/01fb6dff-4ca4-41d8-9068-ec7d48015bb0)](https://github.com/user-attachments/assets/a1a3dd20-a728-4aec-9b53-4292c6ef1a21)
 [![](https://github.com/user-attachments/assets/926fdee4-6a3f-48b6-9848-bbd57e0f8896)](https://github.com/user-attachments/assets/2c62c9af-2ae6-4eca-8abd-3473298168b4)
 [![](https://github.com/user-attachments/assets/fd14950e-faaa-4654-915a-aa1152d695d3)](https://github.com/user-attachments/assets/9a1d3e9d-7550-4b85-8f89-4ed0732ac751)
 [![](https://github.com/user-attachments/assets/c411ee04-1ec7-4ee0-be66-a336b71a8afd)](https://github.com/user-attachments/assets/3d181cee-2f3d-4003-b2b6-9ed83ef89c17)
 [![](https://github.com/user-attachments/assets/321ff138-2c96-42ea-b811-dfc898795a65)](https://github.com/user-attachments/assets/1e6c4b74-df0b-4c51-af44-9e0817bad54b)
 
-## ✨ Features
+## Features
 ✔️ **Checksum verification** - most downloaded files are verified using SHA-1 hashes, ensuring the authenticity and integrity of the downloaded files.<br>
 ✔️ **Older versions** - archived versions are available for some programs, compatible with legacy Windows versions.<br>
 ✔️ **Automatic installation of portable applications** - archives (`zip`, `7z`, `rar`) are automatically extracted to the programs folder (`C:\Programs\` by default), with desktop shortcuts created automatically.<br>
 ✔️ **Silent installation mode** - installation can be performed in the background without dialog windows.<br>
 
-## ❤️ Support the Project
+## Support the Project
 
 You can support the project with a [one-time donation](https://dalink.to/r57zone) or a [subscription](https://boosty.to/r57).
 
 
 Your contribution helps develop and maintain the project.
 
-## 🚀 Download
+## Download
 >Supports Windows 7, 8, 8.1, 10, 11.
 
 **[Download](https://github.com/litecatalog/LiteCatalog/releases)**
 
-## 📂 Application Categories
+## Application Categories
 
 | Category | Description |
 |----------|-------------|
@@ -43,7 +43,7 @@ Your contribution helps develop and maintain the project.
 | 📦 Other | Other useful applications |
 
 
-## 📦 Adding Applications
+## Adding Applications
 
 ### Suggest an Application
 
@@ -81,5 +81,5 @@ To translate to other languages, create a section with the necessary parameters:
 
 Older versions of programs for specific Windows versions can be specified in the corresponding sections: `[App.Windows10]`, `[App.Windows8.1]`, `[App.Windows8]`, `[App.Windows7]`, `[App.WindowsVista]`, and `[App.WindowsXP]`.
 
-## 📧 Feedback
-`r57zone[at]gmail.com`
+## Feedback
+`r57zone@gmail.com`
